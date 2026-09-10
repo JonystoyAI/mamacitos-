@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Logo from '../Logo';
 import { Page } from '../../types';
+import DirectMessagingModal from '../common/DirectMessagingModal';
 
 interface HeaderProps {
     onNavigate: (page: Page) => void;
@@ -23,6 +24,7 @@ const NavLink: React.FC<{ page: Page; label: string; onNavigate: (page: Page) =>
 
 const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterClick }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isDirectMessagingOpen, setIsDirectMessagingOpen] = useState(false);
     
     const navLinks = [
         { page: 'home' as Page, label: 'Inicio' },
@@ -49,8 +51,15 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterCli
                            ))}
                         </div>
                     </div>
-                    <div className="hidden md:block">
-                        <button onClick={onRegisterClick} className="bg-brand-pink hover:bg-opacity-80 text-white font-bold py-2 px-6 rounded-full transition-transform transform hover:scale-105">
+                    <div className="hidden md:flex items-center space-x-3">
+                        <button
+                            onClick={() => setIsDirectMessagingOpen(true)}
+                            className="bg-brand-slate hover:bg-gray-800 text-brand-lime border border-brand-lime/40 text-xs font-bold py-2 px-4 rounded-full transition-all flex items-center gap-1.5 shadow"
+                        >
+                            <span>💬 Mensajes (Voz)</span>
+                        </button>
+                        
+                        <button onClick={onRegisterClick} className="bg-brand-pink hover:bg-opacity-80 text-white text-xs font-bold py-2.5 px-6 rounded-full transition-transform transform hover:scale-105 shadow-md">
                             Regístrate
                         </button>
                     </div>
@@ -83,6 +92,13 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterCli
                     </button>
                 </div>
             </div>
+
+            <DirectMessagingModal
+                isOpen={isDirectMessagingOpen}
+                onClose={() => setIsDirectMessagingOpen(false)}
+                recipientName="Atención a Clientes / VIP"
+                recipientCode="MMC-SUPPORT"
+            />
         </header>
     );
 };

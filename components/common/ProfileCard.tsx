@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Profile } from '../../types';
 import VerifiedBadge from './VerifiedBadge';
+import DirectMessagingModal from './DirectMessagingModal';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -11,6 +12,7 @@ interface ProfileCardProps {
 const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false }) => {
   const [liked, setLiked] = useState(false);
   const [showUncensored, setShowUncensored] = useState(isUnblurred);
+  const [isMessagingOpen, setIsMessagingOpen] = useState(false);
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -110,9 +112,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false 
           </div>
         )}
 
-        <button className="mt-3 w-full bg-brand-pink hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md group-hover:scale-[1.01]">
-          Ver Perfil Completo ➔
-        </button>
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <button
+            onClick={() => setIsMessagingOpen(true)}
+            className="bg-brand-pink hover:bg-opacity-90 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1 shadow-md transition-all"
+          >
+            <span>💬 Mensaje con Voz</span>
+          </button>
+          
+          <button className="bg-brand-slate hover:bg-gray-700 text-gray-200 border border-gray-700 font-bold py-2 px-3 rounded-xl text-xs transition-all">
+            Ver Perfil ➔
+          </button>
+        </div>
+
+        {/* Direct Messaging Modal with Voice-to-Text */}
+        <DirectMessagingModal
+          isOpen={isMessagingOpen}
+          onClose={() => setIsMessagingOpen(false)}
+          recipientName={profile.name}
+          recipientAvatar={profile.image}
+          recipientCode={profile.userIdCode}
+        />
       </div>
     </div>
   );

@@ -16,11 +16,14 @@ const EntryGate: React.FC<EntryGateProps> = ({ onEnter }) => {
                 +18 Sitio Exclusivo para Adultos
             </span>
 
-            <h1 className="text-3xl md:text-5xl font-heading mb-3 text-white px-4">
+            <h1 className="text-3xl md:text-5xl font-heading mb-2 text-white px-4">
                 BIENVENIDO MAMACITO
             </h1>
-            <p className="text-base md:text-lg text-brand-purple-light mb-8 max-w-xl px-4">
-                Disfruta de conexiones discretas, venta de contenido, pagos anónimos por ID, navegación en modo incógnito y perfiles verificados en México.
+            <p className="text-lg md:text-2xl text-brand-lime font-bold mb-3 px-4">
+                El sitio para assy4U
+            </p>
+            <p className="text-sm md:text-base text-gray-200 mb-8 max-w-xl px-4 leading-relaxed">
+                Disfruta de conexiones discretas, con chica sis, tv, sissy, trans, jochis chiken y fems, de manera discreta, segura con perfiles verificados.
             </p>
             <button
                 onClick={onEnter}

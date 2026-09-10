@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserReview } from '../../types';
+import VerificationStepProgress from '../profile/VerificationStepProgress';
 
 const INITIAL_REVIEWS: UserReview[] = [
   {
@@ -125,10 +126,22 @@ const VerificationPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+      {/* 1. STEP-BY-STEP GUIDED VERIFICATION PROGRESS UI */}
+      <div className="mb-12">
+        <VerificationStepProgress
+          onVerificationComplete={(type, num) => {
+            setIsVerified(true);
+            setDocType(type as any);
+            setDocNumber(num);
+          }}
+          initialVerifiedState={isVerified}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-12">
         
-        {/* 1. TWO-FACTOR AUTHENTICATION (2FA) */}
-        <div className="bg-brand-slate p-8 rounded-2xl border border-gray-700 shadow-xl">
+        {/* 2. TWO-FACTOR AUTHENTICATION (2FA) */}
+        <div className="bg-brand-slate p-8 rounded-3xl border border-gray-700/80 shadow-2xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2.5 bg-brand-pink/20 text-brand-pink rounded-xl">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,12 +150,12 @@ const VerificationPage: React.FC = () => {
             </div>
             <div>
               <h2 className="text-2xl font-heading text-white">Autenticación de 2 Factores (2FA)</h2>
-              <p className="text-xs text-gray-300">Protege tu cuenta con SMS o código temporal</p>
+              <p className="text-xs text-gray-300">Protección adicional con SMS para proteger tu inicio de sesión</p>
             </div>
           </div>
 
           {!is2FAEnabled ? (
-            <div className="space-y-4">
+            <div className="space-y-4 max-w-xl">
               <div>
                 <label className="block text-xs font-bold text-gray-300 mb-1">Número de Teléfono Celular</label>
                 <div className="flex gap-2">
@@ -154,7 +167,7 @@ const VerificationPage: React.FC = () => {
                   />
                   <button
                     onClick={handleSend2FACode}
-                    className="bg-brand-pink hover:bg-opacity-80 text-white font-bold text-xs px-4 rounded-xl whitespace-nowrap"
+                    className="bg-brand-pink hover:bg-opacity-80 text-white font-bold text-xs px-5 rounded-xl whitespace-nowrap shadow-md"
                   >
                     Enviar SMS
                   </button>
@@ -176,7 +189,7 @@ const VerificationPage: React.FC = () => {
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-brand-lime hover:bg-opacity-90 text-brand-purple-dark font-bold py-3 rounded-xl text-sm"
+                    className="w-full bg-brand-lime hover:bg-opacity-90 text-brand-purple-dark font-bold py-3 rounded-xl text-sm shadow-md"
                   >
                     Confirmar & Activar 2FA
                   </button>
@@ -184,85 +197,12 @@ const VerificationPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="bg-black/40 p-5 rounded-xl border border-green-500/40 text-center space-y-2">
+            <div className="bg-black/40 p-5 rounded-2xl border border-green-500/40 text-center space-y-2 max-w-xl">
               <div className="w-12 h-12 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto">
                 ✓
               </div>
               <h3 className="font-bold text-green-400 text-lg">2FA ACTIVADO Y PROTEGIDO</h3>
               <p className="text-xs text-gray-300">Tu cuenta requiere confirmación SMS en cada inicio de sesión.</p>
-            </div>
-          )}
-        </div>
-
-        {/* 2. IDENTITY VERIFICATION (INE / PASAPORTE) */}
-        <div className="bg-brand-slate p-8 rounded-2xl border border-gray-700 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-brand-lime/20 text-brand-lime rounded-xl">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-2xl font-heading text-white">Verificación Real de Identidad</h2>
-              <p className="text-xs text-brand-pink font-semibold">Obligatorio para Prestadoras de Servicios (Sin excepción)</p>
-            </div>
-          </div>
-
-          {!isVerified ? (
-            <form onSubmit={handleDocumentSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Tipo de Documento Oficial</label>
-                <select
-                  value={docType}
-                  onChange={e => setDocType(e.target.value as 'INE' | 'Pasaporte')}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white"
-                >
-                  <option value="INE">INE (Credencial para Votar México)</option>
-                  <option value="Pasaporte">Pasaporte Oficial Vigente</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Clave o Folio del Documento</label>
-                <input
-                  type="text"
-                  placeholder="Ej. IDMEX203910283..."
-                  value={docNumber}
-                  onChange={e => setDocNumber(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Teléfono de Emergencia Requerido</label>
-                <input
-                  type="tel"
-                  placeholder="+52 55 1122 3344"
-                  value={emergencyPhone}
-                  onChange={e => setEmergencyPhone(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-white"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={submittingDoc}
-                className="w-full bg-brand-pink hover:bg-opacity-90 text-white font-bold py-3.5 rounded-xl text-sm transition-all"
-              >
-                {submittingDoc ? 'Validando Documento con Sistema Oficial...' : 'Enviar para Validación Oficial'}
-              </button>
-            </form>
-          ) : (
-            <div className="bg-black/40 p-5 rounded-xl border border-brand-pink text-center space-y-2">
-              <span className="bg-brand-pink text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase">
-                Insignia Oficial Activa
-              </span>
-              <h3 className="font-heading text-xl text-white mt-2">PERFIL VERIFICADO OFICIALMENTE</h3>
-              <p className="text-xs text-gray-300">
-                Verificado mediante {docType} y línea de contacto de emergencia activa.
-              </p>
             </div>
           )}
         </div>

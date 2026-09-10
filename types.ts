@@ -100,14 +100,21 @@ export interface DiscreetTransaction {
 
 export interface UserReview {
   id: string;
-  targetProfileId: number;
-  authorUserId: string;
+  targetProfileId: number | string;
+  authorUserId?: string;
   authorName: string;
   isAnonymous: boolean;
   rating: number; // 1 to 5
+  punctualityScore?: number; // 1 to 5
+  veracityScore?: number; // 1 to 5
+  treatmentScore?: number; // 1 to 5
   comment: string;
   date: string;
   isHighRating: boolean; // true if >= 4
+  isNegative: boolean; // true if <= 3
+  isPubliclyVisible: boolean; // default true if rating >= 4, false if rating <= 3 unless provider enables
+  providerResponse?: string;
+  verifiedBooking?: boolean;
 }
 
 export interface EmergencyContact {

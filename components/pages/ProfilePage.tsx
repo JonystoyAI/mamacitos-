@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import PortfolioAssistant from '../ai/PortfolioAssistant';
 import LandingPageCustomizer from '../profile/LandingPageCustomizer';
 import ProfileViewsTracker from '../profile/ProfileViewsTracker';
+import AnonymousReviewManager from '../profile/AnonymousReviewManager';
 import VerifiedBadge from '../common/VerifiedBadge';
 
 type Template = 'classic' | 'modern' | 'vibrant';
@@ -31,7 +32,8 @@ const ProfilePage: React.FC = () => {
         ],
     };
 
-    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'portfolio_view'>('landing_customizer');
+    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'portfolio_view'>('landing_customizer');
+    const [isVerified, setIsVerified] = useState<boolean>(true); // Verification state toggle for testing
     const [template, setTemplate] = useState<Template>('classic');
     const [visibility, setVisibility] = useState<Visibility>('public');
     const [isAIAssistantOpen, setAIAssistantOpen] = useState(false);
@@ -92,7 +94,7 @@ const ProfilePage: React.FC = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
                 
                 {/* Mode Selector Tabs */}
-                <div className="bg-brand-slate p-2 rounded-2xl border border-gray-700/80 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto shadow-xl">
+                <div className="bg-brand-slate p-2 rounded-2xl border border-gray-700/80 flex flex-col sm:flex-row gap-2 max-w-3xl mx-auto shadow-xl">
                   <button
                     onClick={() => setActiveTab('landing_customizer')}
                     className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
@@ -114,7 +116,19 @@ const ProfilePage: React.FC = () => {
                     }`}
                   >
                     <span>👁</span>
-                    <span>¿Quién vio mi perfil?</span>
+                    <span>¿Quién me vio?</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('reviews')}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      activeTab === 'reviews'
+                        ? 'bg-brand-pink text-white shadow-lg'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <span>⭐</span>
+                    <span>Reseñas Anónimas</span>
                   </button>
 
                   <button
@@ -127,6 +141,21 @@ const ProfilePage: React.FC = () => {
                   >
                     <span>👤</span>
                     <span>Editar Portafolio</span>
+                  </button>
+                </div>
+
+                {/* Quick Verification State Test Bar */}
+                <div className="flex justify-end items-center gap-2 max-w-3xl mx-auto">
+                  <span className="text-[11px] text-gray-400 font-mono">Estado de Prueba Proveedor:</span>
+                  <button
+                    onClick={() => setIsVerified(!isVerified)}
+                    className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all ${
+                      isVerified
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                        : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    }`}
+                  >
+                    {isVerified ? '✓ Cuenta Verificada (INE)' : '🔒 Cuenta Sin Verificar'}
                   </button>
                 </div>
 
@@ -144,8 +173,17 @@ const ProfilePage: React.FC = () => {
                     userIdCode={provider.userIdCode}
                     userName={provider.name}
                   />
+                ) : activeTab === 'reviews' ? (
+                  /* TAB 3: ANONYMOUS REVIEWS & REPUTATION MANAGEMENT */
+                  <AnonymousReviewManager
+                    providerId={101}
+                    providerName={provider.name}
+                    isVerified={isVerified}
+                    userIdCode={provider.userIdCode}
+                    isOwnerView={true}
+                  />
                 ) : (
-                  /* TAB 3: PORTFOLIO VIEW & STYLES */
+                  /* TAB 4: PORTFOLIO VIEW & STYLES */
                   <div className="space-y-8">
                     {/* Portfolio Customization Panel */}
                     <div className="bg-black/30 p-4 rounded-lg mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import AIFeatureShowcase from '../ai/AIFeatureShowcase';
+import SearchGroundedSafetyNews from '../common/SearchGroundedSafetyNews';
 
 interface HomePageProps {
   onNavigate: (page: Page) => void;
@@ -25,12 +26,12 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate, onRegisterClick }) => {
             BIENVENIDO MAMACITO
           </h1>
 
-          <p className="mt-4 text-lg md:text-2xl text-brand-lime font-semibold max-w-3xl mx-auto">
-            ¡Descubre todas las ventajas de registrarte y hazte Premium!
+          <p className="mt-4 text-xl md:text-3xl text-brand-lime font-bold max-w-3xl mx-auto">
+            El sitio para assy4U
           </p>
 
           <p className="mt-3 text-sm md:text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            Ver fotos sin censura, enviar mensajes directos, navegar en modo incógnito, solicitar pagos discretos por ID y posicionar tu perfil en los primeros puestos en todos los estados y municipios de México.
+            Disfruta de conexiones discretas, con chica sis, tv, sissy, trans, jochis chiken y fems, de manera discreta, segura con perfiles verificados.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
@@ -153,6 +154,13 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate, onRegisterClick }) => {
         </div>
       </div>
       
+      {/* Real-time Search Grounded Safety & Local Events Dashboard */}
+      <div className="py-12 bg-gray-950">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <SearchGroundedSafetyNews />
+        </div>
+      </div>
+
       {/* AI Features Showcase */}
       <AIFeatureShowcase />
     </>

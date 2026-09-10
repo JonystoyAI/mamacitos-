@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LandingPageSettings } from '../../types';
 import VerifiedBadge from '../common/VerifiedBadge';
+import ProfileQRCode from '../common/ProfileQRCode';
 
 interface LandingPageCustomizerProps {
   initialSettings?: LandingPageSettings;
@@ -157,6 +158,15 @@ const LandingPageCustomizer: React.FC<LandingPageCustomizerProps> = ({
           )}
         </button>
       </div>
+
+      {/* DEDICATED QR CODE GENERATOR SECTION */}
+      <ProfileQRCode
+        slug={settings.slug}
+        providerName={profileName}
+        userIdCode={userIdCode}
+        profileImage={profileImage}
+        customTitle={`Código QR para ${profileName}`}
+      />
 
       {/* Grid Settings: Privacy Controls & Appearance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -448,6 +458,27 @@ const LandingPageCustomizer: React.FC<LandingPageCustomizerProps> = ({
                           </span>
                         </div>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Public Verified Reviews Badge on Landing Page */}
+                  <div className="bg-gray-900/80 p-5 rounded-2xl border border-gray-800 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-white">Reputación Verificada</h3>
+                        <span className="bg-amber-400/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-400/30">
+                          ★ 4.9 / 5.0
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-mono">Reseñas Anónimas</span>
+                    </div>
+
+                    <div className="bg-gray-800/60 p-3 rounded-xl border border-gray-700/50 space-y-1">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-white">Usuario Anónimo</span>
+                        <span className="text-amber-400">★★★★★</span>
+                      </div>
+                      <p className="text-[11px] text-gray-300 italic">"Excelente atención, sumamente puntual y las fotos son 100% reales."</p>
                     </div>
                   </div>
 

@@ -34,6 +34,11 @@ const App: React.FC = () => {
       return () => clearTimeout(splashTimer);
     }
   }, [userInteracted]);
+
+  // Scroll to top smoothly when switching pages
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
   
   const handleRegisterClick = () => setLoginOpen(true);
 
@@ -88,8 +93,10 @@ const App: React.FC = () => {
       <PanicButton />
 
       <Header onNavigate={setCurrentPage} current_page={currentPage} onRegisterClick={handleRegisterClick} />
-      <main className="min-h-[80vh]">
-        {renderPage()}
+      <main className="min-h-[80vh] overflow-x-hidden">
+        <div key={currentPage} className="animate-page-fade-in">
+          {renderPage()}
+        </div>
       </main>
       <Footer />
       {isLoginOpen && <LoginPage onClose={() => setLoginOpen(false)} />}

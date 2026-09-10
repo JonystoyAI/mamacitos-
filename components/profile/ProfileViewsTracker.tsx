@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Shield, Bell, Lock, Sparkles, Filter, RefreshCw, UserCheck, Share2, Link, Search, QrCode, CheckCircle2, Info, ArrowUpRight } from 'lucide-react';
 import { ProfileView, ProfileViewPrivacySettings } from '../../types';
 import VerifiedBadge from '../common/VerifiedBadge';
+import EngagementAnalyticsChart from './EngagementAnalyticsChart';
 
 interface ProfileViewsTrackerProps {
   isPremium?: boolean;
@@ -236,6 +237,9 @@ export const ProfileViewsTracker: React.FC<ProfileViewsTrackerProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Recharts Data Visualization Component: 30-Day Engagement Trends */}
+      <EngagementAnalyticsChart userName={userName} userIdCode={userIdCode} />
 
       {/* Metrics Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

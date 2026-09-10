@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ContentItem } from '../../types';
 import CreatorMetricsDashboard from '../creator/CreatorMetricsDashboard';
+import UnlockCountdownTimer from '../creator/UnlockCountdownTimer';
 
 const INITIAL_CONTENT: ContentItem[] = [
   {
@@ -341,11 +342,17 @@ const ComparteContenidoPage: React.FC = () => {
                             {item.allowDownload ? 'Permitida' : 'Solo lectura / Ver una vez'}
                           </strong>
                         </div>
-                        <div className="flex justify-between text-gray-300">
-                          <span>Contacto Directo:</span>
-                          <strong className="text-gray-400">Protegido por Mamacitos (Sin Teléfono)</strong>
-                        </div>
                       </div>
+
+                      {/* Live Unlock Countdown Timer when unlocked */}
+                      {isUnlocked && (
+                        <div className="mb-4">
+                          <UnlockCountdownTimer
+                            unlockDurationHours={item.unlockDurationHours}
+                            compact={false}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -498,14 +505,28 @@ const ComparteContenidoPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {items.filter(i => unlockedItemIds.includes(i.id) || isVipSubscriber).map(item => (
-                <div key={item.id} className="bg-brand-slate p-6 rounded-2xl border border-green-500/40 shadow-xl">
-                  <span className="text-xs font-mono text-green-400 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/30">
-                    {isVipSubscriber ? 'ACCESO VIP TOTAL' : 'LINK LIBERADO'}
-                  </span>
-                  <h3 className="text-xl font-bold text-white mt-3">{item.title}</h3>
-                  <p className="text-xs text-gray-300 mt-1 mb-4">{item.description}</p>
+                <div key={item.id} className="bg-brand-slate p-6 rounded-2xl border border-green-500/40 shadow-xl space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-mono text-green-400 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/30">
+                      {isVipSubscriber ? 'ACCESO VIP TOTAL' : 'LINK LIBERADO'}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      ID: {item.id}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{item.title}</h3>
+                    <p className="text-xs text-gray-300 mt-1">{item.description}</p>
+                  </div>
                   
-                  <div className="bg-black/50 p-3 rounded-xl mb-4 font-mono text-xs text-gray-300 break-all border border-gray-700">
+                  {/* Live Unlock Countdown Timer */}
+                  <UnlockCountdownTimer
+                    unlockDurationHours={item.unlockDurationHours}
+                    compact={false}
+                  />
+
+                  <div className="bg-black/50 p-3 rounded-xl font-mono text-xs text-gray-300 break-all border border-gray-700">
                     {item.externalPlatformLink}
                   </div>
 
@@ -513,7 +534,7 @@ const ComparteContenidoPage: React.FC = () => {
                     href={item.externalPlatformLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-xl text-center text-sm"
+                    className="block w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl text-center text-sm shadow-md transition-all hover:scale-[1.01]"
                   >
                     Abrir Contenido Ahora ➔
                   </a>
