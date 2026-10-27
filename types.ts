@@ -1,4 +1,3 @@
-
 export interface LandingPageSettings {
   slug: string;
   enabled: boolean;
@@ -35,9 +34,29 @@ export type Page =
   | 'discreet_payments' 
   | 'verification' 
   | 'referrals' 
-  | 'profile';
+  | 'profile'
+  | 'blog'
+  | 'view_profile';
 
 export type ProfileType = 'social' | 'sex_worker' | 'dom_sub' | 'other_services' | 'personal_contact';
+
+export interface ProfileReel {
+  id: string;
+  title: string;
+  videoUrl?: string;
+  posterUrl: string;
+  duration?: string;
+  views?: number;
+  likes?: number;
+}
+
+export interface ProfileShowcaseVideo {
+  id: string;
+  title: string;
+  videoUrl?: string;
+  thumbnailUrl: string;
+  duration: string;
+}
 
 export interface Profile {
   id: number;
@@ -64,6 +83,72 @@ export interface Profile {
   topPosition?: boolean;
   landingSlug?: string;
   isPremium?: boolean;
+  
+  // Advanced filters & taxonomy
+  role?: string; // Activo, Pasivo, Versátil, etc.
+  gender?: string; // Mujer Trans, Pareja Trans y Trans, Pareja H y Trans, etc.
+  lookingFor?: string[]; // Soy Escort / Scort, No pago por sexo, etc.
+  hobbies?: string[]; // Pasatiempos
+  sexualPreferences?: string[]; // Prácticas & Kinks (Feminización, Fisting, Cruising, Gangbang, 2 Romano, etc.)
+  safetyPractices?: string[]; // Solo con condón, A pelo, No drogas, Dulces
+  logistics?: string[]; // Con lugar, Sin lugar, Motel / Hotel
+  bodyType?: string; // Delgada, Atlética, Curvy, etc.
+  heightCategory?: string; // Petit, Media, Alta
+  hairColor?: string; // Negro, Castaño, Rubio, etc.
+  eyeColor?: string; // Cafés, Verdes, Azules, etc.
+  physicalFeatures?: string[]; // Tatuajes, Piercings, etc.
+
+  // Editorial profile layout (matching reference image)
+  editorialHeadline?: string; // e.g. "HOLA SOY GRACE"
+  editorialBioParagraph?: string;
+  editorialLocationHeadline?: string; // e.g. "Vivo en Querétaro"
+  editorialDetailedBio?: string;
+  editorialClosingText?: string;
+  whatsappNumber?: string;
+  showcaseVideos?: ProfileShowcaseVideo[];
+  editorialGallery?: string[]; // 9 photos for 3x3 grid
+  reels?: ProfileReel[]; // 2 vertical reels
+  socialLinks?: {
+    facebook?: string;
+    youtube?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+
+  // Blogger feature
+  isBloggerEnabled?: boolean;
+  publishedArticlesCount?: number;
+}
+
+export type BlogCategory = 
+  | 'insights' 
+  | 'creators' 
+  | 'wellness' 
+  | 'community' 
+  | 'safety';
+
+export interface BlogArticle {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  category: BlogCategory;
+  categoryLabel: string;
+  coverImage: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  authorRole?: string;
+  isAuthorVerified: boolean;
+  isAuthorPremium: boolean;
+  publishedAt: string;
+  readTimeMinutes: number;
+  likesCount: number;
+  viewsCount: number;
+  tags: string[];
+  isFeatured?: boolean;
 }
 
 export interface ContentItem {
@@ -146,6 +231,4 @@ export interface ProfileViewPrivacySettings {
   incognitoBrowsing: boolean; // Browse others without leaving a trace (Premium)
   hideFromVisitorsList: boolean; // Hide oneself from others' visitor logs
   notifyOnNewView: boolean; // Realtime alerts when profile is viewed
-  blurVisitorAvatars: boolean; // Blur visitor profile pictures
-  blockIncognitoVisitors: boolean; // Require visitors to reveal identity
 }

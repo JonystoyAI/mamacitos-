@@ -8,11 +8,15 @@ import MyFavoritesSection from '../profile/MyFavoritesSection';
 import VerifiedBadge from '../common/VerifiedBadge';
 import { useFavorites } from '../../src/utils/favorites';
 import ProviderPhotoGallery, { GalleryImage } from '../profile/ProviderPhotoGallery';
+import BloggerManager from '../profile/BloggerManager';
+import EditorialProfileView from '../profile/EditorialProfileView';
+import { PenTool, ExternalLink, Sparkles } from 'lucide-react';
+import { Page } from '../../types';
 
 type Template = 'classic' | 'modern' | 'vibrant';
 type Visibility = 'public' | 'members' | 'private';
 
-const ProfilePage: React.FC = () => {
+const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNavigate }) => {
     // Mock data for a provider profile
     const provider = {
         name: 'Valentina',
@@ -37,7 +41,8 @@ const ProfilePage: React.FC = () => {
         ],
     };
 
-    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'portfolio_view'>('landing_customizer');
+    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'blogger' | 'portfolio_view'>('landing_customizer');
+    const [showEditorialPreview, setShowEditorialPreview] = useState(false);
     const { count: favoritesCount } = useFavorites();
     const [isVerified, setIsVerified] = useState<boolean>(true); // Verification state toggle for testing
     const [template, setTemplate] = useState<Template>('classic');
@@ -155,6 +160,17 @@ const ProfilePage: React.FC = () => {
                   </button>
 
                   <button
+                    onClick={() => setActiveTab('blogger')}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      activeTab === 'blogger'
+                        ? 'bg-amber-400 text-neutral-950 shadow-lg'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <span>✍️</span>
+                    <span>Modo Blogger VIP</span>
+                  </button>
+                  <button
                     onClick={() => setActiveTab('portfolio_view')}
                     className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       activeTab === 'portfolio_view'
@@ -164,6 +180,17 @@ const ProfilePage: React.FC = () => {
                   >
                     <span>👤</span>
                     <span>Editar Portafolio</span>
+                  </button>
+                </div>
+
+                {/* Editorial Profile Preview Quick Launcher Button */}
+                <div className="flex justify-center max-w-3xl mx-auto">
+                  <button
+                    onClick={() => setShowEditorialPreview(true)}
+                    className="bg-neutral-900 hover:bg-neutral-800 text-amber-300 border border-amber-400/50 text-xs font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 shadow-xl transition-all transform hover:scale-[1.02]"
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>Ver Mi Perfil Editorial (Diseño Grace) ➔</span>
                   </button>
                 </div>
 
@@ -208,6 +235,14 @@ const ProfilePage: React.FC = () => {
                 ) : activeTab === 'favorites' ? (
                   /* TAB 4: MY FAVORITES & SAVED PROFILES SECTION */
                   <MyFavoritesSection />
+                ) : activeTab === 'blogger' ? (
+                  /* TAB 5: BLOGGER VIP & ARTICLE MANAGEMENT */
+                  <BloggerManager
+                    isPremium={true}
+                    userIdCode={provider.userIdCode}
+                    userName={provider.name}
+                    onNavigateToBlog={() => onNavigate?.('blog')}
+                  />
                 ) : (
                   /* TAB 5: PORTFOLIO VIEW & STYLES */
                   <div className="space-y-8">
