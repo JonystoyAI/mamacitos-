@@ -22,8 +22,13 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate, onRegisterClick }) => {
             Plataforma Segura & Discreta +18
           </span>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-heading text-white drop-shadow-xl tracking-wide leading-tight">
-            BIENVENIDO MAMACITO
+          <h1 className="my-2 flex justify-center items-center">
+            <img
+              src="/assets/aistudio/bienvenidos-mamacitos_95166a46.png"
+              alt="Mamacitos"
+              className="h-20 sm:h-28 md:h-36 w-auto max-w-full object-contain mx-auto filter drop-shadow-md"
+            />
+            <span className="sr-only">Mamacitos</span>
           </h1>
 
           <p className="mt-4 text-xl md:text-3xl text-brand-lime font-bold max-w-3xl mx-auto">

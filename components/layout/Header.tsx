@@ -39,9 +39,18 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterCli
         <header className="bg-brand-slate/30 backdrop-blur-md sticky top-0 z-40">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    <div className="flex-shrink-0">
-                        <button onClick={() => onNavigate('home')}>
-                            <Logo className="h-12 w-auto" />
+                    <div className="flex-shrink-0 flex items-center">
+                        <button 
+                            onClick={() => onNavigate('home')} 
+                            className="flex items-center hover:opacity-90 transition-opacity focus:outline-none"
+                            aria-label="Ir al inicio de Mamacitos"
+                        >
+                            <img 
+                                src="/assets/aistudio/loco-sitio-mamacitos_aa765503.png" 
+                                alt="Mamacitos - El lugar para assy4u" 
+                                className="h-[56px] sm:h-[62px] w-auto object-contain"
+                                style={{ height: '61.9978px' }}
+                            />
                         </button>
                     </div>
                     <div className="hidden md:block">
