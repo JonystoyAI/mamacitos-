@@ -4,7 +4,10 @@ import PortfolioAssistant from '../ai/PortfolioAssistant';
 import LandingPageCustomizer from '../profile/LandingPageCustomizer';
 import ProfileViewsTracker from '../profile/ProfileViewsTracker';
 import AnonymousReviewManager from '../profile/AnonymousReviewManager';
+import MyFavoritesSection from '../profile/MyFavoritesSection';
 import VerifiedBadge from '../common/VerifiedBadge';
+import { useFavorites } from '../../src/utils/favorites';
+import ProviderPhotoGallery, { GalleryImage } from '../profile/ProviderPhotoGallery';
 
 type Template = 'classic' | 'modern' | 'vibrant';
 type Visibility = 'public' | 'members' | 'private';
@@ -19,11 +22,13 @@ const ProfilePage: React.FC = () => {
         location: 'Ciudad de México',
         profileImage: 'https://picsum.photos/seed/profile/1200/800',
         gallery: [
-            'https://picsum.photos/seed/gallery1/600/400',
-            'https://picsum.photos/seed/gallery2/600/400',
-            'https://picsum.photos/seed/gallery3/600/400',
-            'https://picsum.photos/seed/gallery4/600/400',
-        ],
+            { id: 1, url: 'https://picsum.photos/seed/gallery1/800/600', title: 'Cena de Gala', category: 'Acompañante' },
+            { id: 2, url: 'https://picsum.photos/seed/gallery2/800/600', title: 'Relax Total', category: 'Relajación' },
+            { id: 3, url: 'https://picsum.photos/seed/gallery3/800/600', title: 'Sesión Fotográfica', category: 'Modelaje' },
+            { id: 4, url: 'https://picsum.photos/seed/gallery4/800/600', title: 'Evento Social', category: 'Acompañante' },
+            { id: 5, url: 'https://picsum.photos/seed/gallery5/800/600', title: 'Masaje VIP', category: 'Relajación' },
+            { id: 6, url: 'https://picsum.photos/seed/gallery6/800/600', title: 'Discreción Absoluta', category: 'Exclusivo' },
+        ] as GalleryImage[],
         aboutMe: "Soy una artista del alma y el cuerpo, apasionada por crear experiencias memorables y conexiones profundas. Mi enfoque es la elegancia, la discreción y una compañía que te hará olvidar el mundo exterior. Me encanta el cine clásico, la gastronomía y las conversaciones que fluyen hasta el amanecer.",
         services: [
             { name: "Cena y Conversación", description: "Una velada encantadora en el restaurante de tu elección, llena de risas y diálogo estimulante." },
@@ -32,7 +37,8 @@ const ProfilePage: React.FC = () => {
         ],
     };
 
-    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'portfolio_view'>('landing_customizer');
+    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'portfolio_view'>('landing_customizer');
+    const { count: favoritesCount } = useFavorites();
     const [isVerified, setIsVerified] = useState<boolean>(true); // Verification state toggle for testing
     const [template, setTemplate] = useState<Template>('classic');
     const [visibility, setVisibility] = useState<Visibility>('public');
@@ -132,6 +138,23 @@ const ProfilePage: React.FC = () => {
                   </button>
 
                   <button
+                    onClick={() => setActiveTab('favorites')}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 relative ${
+                      activeTab === 'favorites'
+                        ? 'bg-brand-pink text-white shadow-lg'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <span>❤️</span>
+                    <span>Mis Favoritos</span>
+                    {favoritesCount > 0 && (
+                      <span className="bg-brand-lime text-brand-purple-dark text-[10px] font-extrabold px-2 py-0.2 rounded-full">
+                        {favoritesCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => setActiveTab('portfolio_view')}
                     className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       activeTab === 'portfolio_view'
@@ -182,8 +205,11 @@ const ProfilePage: React.FC = () => {
                     userIdCode={provider.userIdCode}
                     isOwnerView={true}
                   />
+                ) : activeTab === 'favorites' ? (
+                  /* TAB 4: MY FAVORITES & SAVED PROFILES SECTION */
+                  <MyFavoritesSection />
                 ) : (
-                  /* TAB 4: PORTFOLIO VIEW & STYLES */
+                  /* TAB 5: PORTFOLIO VIEW & STYLES */
                   <div className="space-y-8">
                     {/* Portfolio Customization Panel */}
                     <div className="bg-black/30 p-4 rounded-lg mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -275,12 +301,7 @@ const ProfilePage: React.FC = () => {
                         {/* Right Column (Gallery & Contact) */}
                         <div className="space-y-8">
                             <div className={`${baseSectionClass} ${currentStyle.sectionBg}`}>
-                                 <h2 className={`text-3xl font-heading ${currentStyle.headingColor} mb-4`}>Galería</h2>
-                                 <div className="grid grid-cols-2 gap-4">
-                                    {provider.gallery.map((img, index) => (
-                                        <img key={index} src={img} alt={`Gallery image ${index+1}`} className="rounded-md object-cover w-full h-32 hover:scale-105 transition-transform duration-300 cursor-pointer"/>
-                                    ))}
-                                 </div>
+                                <ProviderPhotoGallery images={provider.gallery} headingColorClass={currentStyle.headingColor} />
                             </div>
                             <div className={`${baseSectionClass} ${currentStyle.sectionBg} text-center`}>
                                 <h2 className="text-2xl font-heading text-white">Contactar</h2>

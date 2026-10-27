@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Profile } from '../../types';
 import VerifiedBadge from './VerifiedBadge';
 import DirectMessagingModal from './DirectMessagingModal';
+import { useFavorites } from '../../src/utils/favorites';
+import { Heart, Sparkles } from 'lucide-react';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -10,13 +12,18 @@ interface ProfileCardProps {
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false }) => {
-  const [liked, setLiked] = useState(false);
+  const { isFavorited, toggleFavorite } = useFavorites();
+  const favorited = isFavorited(profile.id);
+
   const [showUncensored, setShowUncensored] = useState(isUnblurred);
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
-  const handleLikeClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLiked(!liked);
+    const isNowAdded = toggleFavorite(profile);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
   };
 
   return (
@@ -30,23 +37,31 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false 
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
         
-        {/* Like Button */}
+        {/* Save for Later / Favorite Heart Button */}
         <button
-          onClick={handleLikeClick}
-          className="absolute top-3 left-3 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors duration-200 z-10"
-          aria-label="Like profile"
+          onClick={handleFavoriteClick}
+          className={`absolute top-3 left-3 p-2.5 rounded-full backdrop-blur-md transition-all duration-300 z-20 group/heart ${
+            favorited
+              ? 'bg-brand-pink/90 text-white shadow-lg shadow-brand-pink/50 scale-110'
+              : 'bg-black/60 hover:bg-black/80 text-gray-300 hover:text-brand-pink'
+          }`}
+          aria-label={favorited ? 'Quitar de Favoritos' : 'Guardar en Favoritos'}
+          title={favorited ? 'Quitar de Favoritos' : 'Guardar para después'}
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className={`h-5 w-5 transition-colors ${liked ? 'text-red-500' : 'text-white'}`} 
-            fill={liked ? 'currentColor' : 'none'} 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-          </svg>
+          <Heart
+            className={`w-5 h-5 transition-transform duration-300 ${
+              favorited ? 'fill-current text-white scale-110' : 'group-hover/heart:scale-110'
+            }`}
+          />
         </button>
+
+        {/* Favorite Feedback Toast */}
+        {showToast && (
+          <div className="absolute top-14 left-3 bg-gray-950/95 border border-brand-pink/80 px-3 py-1.5 rounded-xl shadow-2xl text-[10px] font-bold text-white flex items-center gap-1.5 animate-fade-in z-30 backdrop-blur-md">
+            <Sparkles className="w-3 h-3 text-brand-lime" />
+            <span>{favorited ? '¡Guardado en Mis Favoritos!' : 'Eliminado de Favoritos'}</span>
+          </div>
+        )}
 
         {/* Top Position Tag */}
         {profile.topPosition && (
