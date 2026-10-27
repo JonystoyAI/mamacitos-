@@ -4,6 +4,7 @@ import SiteIcon from '../common/SiteIcon';
 import VerifiedBadge from '../common/VerifiedBadge';
 import DirectMessagingModal from '../common/DirectMessagingModal';
 import { useFavorites } from '../../src/utils/favorites';
+import { useDiscretionMode } from '../../src/utils/discretionMode';
 import { 
   Heart, 
   Share2, 
@@ -16,7 +17,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   Maximize2,
-  Volume2
+  Volume2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface EditorialProfileViewProps {
@@ -120,6 +123,9 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
   const currentProfile = profile || DEFAULT_EDITORIAL_PROFILE;
   const { isFavorited, toggleFavorite } = useFavorites();
   const favorited = isFavorited(currentProfile.id);
+  const { shouldBlurMedia, shouldHideActivity, isDiscretionMode } = useDiscretionMode();
+  const [tempReveal, setTempReveal] = useState(false);
+  const isBlurred = shouldBlurMedia && !tempReveal;
 
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -204,11 +210,22 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
               <Share2 className="w-4 h-4" />
             </button>
 
-            {/* "ON LINE" Indicator with Site Icon matching the reference screenshot top right */}
+            {isDiscretionMode && (
+              <button
+                onClick={() => setTempReveal(!tempReveal)}
+                className="text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-400/40 text-amber-300 bg-neutral-900 hover:bg-neutral-800 flex items-center gap-1 transition-colors"
+                title={tempReveal ? 'Volver a desenfocar imágenes' : 'Revelar imágenes temporalmente'}
+              >
+                {tempReveal ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                <span>{tempReveal ? 'Desenfocar' : 'Revelar'}</span>
+              </button>
+            )}
+
+            {/* Presence Indicator with Site Icon */}
             <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
               <span className="text-[11px] font-mono tracking-widest text-neutral-300 uppercase flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                ON LINE
+                <span className={`w-2 h-2 rounded-full ${shouldHideActivity ? 'bg-purple-400' : 'bg-emerald-400 animate-pulse'}`}></span>
+                {shouldHideActivity ? 'INCÓGNITO' : 'ON LINE'}
               </span>
               <SiteIcon size="sm" alt="Mamacitos Icon" />
             </div>
@@ -289,13 +306,13 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
               <img
                 src={gallery[0]}
                 alt="Portrait Left"
-                className="absolute left-0 top-6 w-52 sm:w-60 h-72 sm:h-80 object-cover rounded-sm filter grayscale contrast-125 opacity-80"
+                className={`absolute left-0 top-6 w-52 sm:w-60 h-72 sm:h-80 object-cover rounded-sm filter grayscale contrast-125 opacity-80 transition-all duration-300 ${isBlurred ? 'blur-lg' : ''}`}
               />
               {/* Primary foreground portrait */}
               <img
                 src={gallery[1]}
                 alt="Portrait Right"
-                className="absolute right-2 top-0 w-56 sm:w-64 h-80 sm:h-96 object-cover rounded-sm filter contrast-110 shadow-2xl z-10"
+                className={`absolute right-2 top-0 w-56 sm:w-64 h-80 sm:h-96 object-cover rounded-sm filter contrast-110 shadow-2xl z-10 transition-all duration-300 ${isBlurred ? 'blur-lg' : ''}`}
               />
               {/* Ambient radial fade to seamlessly blend with black */}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-15 pointer-events-none"></div>
@@ -316,7 +333,7 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
                 <img
                   src={video.thumbnailUrl}
                   alt={video.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+                  className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95 ${isBlurred ? 'blur-lg' : ''}`}
                 />
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors"></div>
 
@@ -387,7 +404,7 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
                   <img
                     src={photoUrl}
                     alt={`Editorial Photo ${idx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 filter contrast-105"
+                    className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 filter contrast-105 ${isBlurred ? 'blur-md' : ''}`}
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -413,7 +430,7 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
                 <img
                   src={reel.posterUrl}
                   alt={reel.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500 filter contrast-110"
+                  className={`absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-500 filter contrast-110 ${isBlurred ? 'blur-md' : ''}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30"></div>
 

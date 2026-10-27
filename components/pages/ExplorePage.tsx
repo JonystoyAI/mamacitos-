@@ -7,22 +7,25 @@ import {
   SlidersHorizontal, 
   X, 
   RotateCcw, 
-  Check, 
   Flame, 
   MapPin, 
   ShieldCheck, 
   UserCheck, 
-  Sparkles, 
   ChevronDown, 
   ChevronUp, 
   Search,
   HeartHandshake,
   Activity,
-  Layers,
   Compass,
   Palette,
-  Eye
+  Eye,
+  Ruler,
+  Users,
+  Sparkles,
+  Heart,
+  Lock
 } from 'lucide-react';
+import { useFavorites } from '../../src/utils/favorites';
 
 export const ROLE_OPTIONS = [
   'Activo',
@@ -32,11 +35,15 @@ export const ROLE_OPTIONS = [
   'Versátil Pasivo',
   'Ama / Dominante',
   'Sumiso / Esclavo',
-  'Solo Oral / Intercambio'
+  'Solo Oral / Intercambio',
+  'Intercambio de roles'
 ] as const;
 
 export const GENDER_OPTIONS = [
   'Mujer Trans',
+  'Pareja Trans y Trans',
+  'Pareja H y Trans',
+  'Pareja H y H',
   'Chica Cis',
   'TV (Travesti)',
   'Sissy',
@@ -44,37 +51,35 @@ export const GENDER_OPTIONS = [
   'Hombre Cis',
   'Hombre Trans',
   'No binario',
-  'Pareja Trans y Trans',
-  'Pareja H y Trans',
-  'Pareja H y H',
   'Pareja (H y M)'
 ] as const;
 
 export const LOOKING_FOR_OPTIONS = [
   'Soy Escort / Scort',
+  'Feminización',
+  'Fisting',
+  'Cruising',
+  'Gangbang',
+  'Voyerismo',
+  'Exhibicionismo',
+  'Tríos',
+  '2 Romano (DP)',
+  'Rapidín',
+  'Ver nopor',
+  'Masturbación mutua',
+  'XXL / Dotados',
+  'Morbo / Dirty talk',
+  'Transformación',
   'No pago por sexo',
   'Grabar contenido',
+  'Juguetes eróticos',
+  'BDSM / Kink',
   'Encuentro casual',
   'Citas y romance',
   'Trato de novios (GFE)',
-  'Amistad y buen rollo',
   'Discreción absoluta',
-  'Eventos y salidas'
-] as const;
-
-export const LOGISTICS_OPTIONS = [
-  'Con lugar propio',
-  'Sin lugar (a domicilio / motel)',
-  'Motel / Hotel',
-  'Auto / Cruising'
-] as const;
-
-export const SAFETY_PRACTICES_OPTIONS = [
-  'Solo con condón',
-  'A pelo (Bareback / PrEP)',
-  'No drogas (Cero sustancias)',
-  'Dulces (Chem / Ambiente)',
-  'Pruebas de salud al día'
+  'Eventos y salidas',
+  'Amistad y buen rollo'
 ] as const;
 
 export const SEXUAL_PRACTICES_OPTIONS = [
@@ -93,11 +98,50 @@ export const SEXUAL_PRACTICES_OPTIONS = [
   'Voyerismo',
   'Exhibicionismo',
   'Juguetes eróticos',
-  'BDSM / Kink',
+  'BDSM / Dominación',
   'Oral apasionado',
   'Lencería y tacones',
   'Masajes eróticos',
   'Roleplay'
+] as const;
+
+export const LOGISTICS_OPTIONS = [
+  'Con lugar propio',
+  'Sin lugar (a domicilio / motel)',
+  'Motel / Hotel',
+  'Auto / Cruising'
+] as const;
+
+export const SAFETY_PRACTICES_OPTIONS = [
+  'Solo con condón',
+  'A pelo (Bareback / PrEP)',
+  'No drogas (Cero sustancias)',
+  'Dulces (Chem / Ambiente)',
+  'Pruebas de salud al día'
+] as const;
+
+export const HEIGHT_OPTIONS = [
+  'Petit (< 1.60 m)',
+  'Media (1.60 m - 1.70 m)',
+  'Media-Alta (1.70 m - 1.80 m)',
+  'Alta (> 1.80 m)'
+] as const;
+
+export const EYE_COLOR_OPTIONS = [
+  { label: 'Cafés / Castaños', hex: '#5c3818' },
+  { label: 'Negros', hex: '#1c1917' },
+  { label: 'Verdes / Claros', hex: '#15803d' },
+  { label: 'Azules', hex: '#0284c7' },
+  { label: 'Miel / Ámbar', hex: '#d97706' }
+] as const;
+
+export const HAIR_COLOR_OPTIONS = [
+  { label: 'Negro', hex: '#171717' },
+  { label: 'Castaño', hex: '#5c3818' },
+  { label: 'Rubio', hex: '#eab308' },
+  { label: 'Pelirrojo', hex: '#ea580c' },
+  { label: 'Fantasía / Teñido', hex: '#ec4899' },
+  { label: 'Rapado / Calvo', hex: '#737373' }
 ] as const;
 
 export const BODY_TYPE_OPTIONS = [
@@ -107,29 +151,6 @@ export const BODY_TYPE_OPTIONS = [
   'Normal / Media',
   'Musculosa',
   'Robusta / Chubby'
-] as const;
-
-export const HEIGHT_OPTIONS = [
-  'Petit (< 1.60 m)',
-  'Media (1.60 m - 1.75 m)',
-  'Alta (> 1.75 m)'
-] as const;
-
-export const HAIR_COLOR_OPTIONS = [
-  'Negro',
-  'Castaño',
-  'Rubio',
-  'Pelirrojo',
-  'Fantasía / Teñido',
-  'Rapado / Calvo'
-] as const;
-
-export const EYE_COLOR_OPTIONS = [
-  'Cafés / Castaños',
-  'Negros',
-  'Verdes',
-  'Azules',
-  'Miel / Ámbar'
 ] as const;
 
 export const PHYSICAL_FEATURES_OPTIONS = [
@@ -152,123 +173,242 @@ export const HOBBIES_OPTIONS = [
   'Moda y shopping'
 ] as const;
 
-const mockProfiles: Profile[] = Array.from({ length: 28 }, (_, i) => {
+// 32 Rich diverse mock profiles covering all newly added options
+const mockProfiles: Profile[] = Array.from({ length: 32 }, (_, i) => {
   const stateObj = MEXICO_STATES_DATA[i % MEXICO_STATES_DATA.length];
   const mun = stateObj.municipios[i % stateObj.municipios.length];
-  const names = [
-    'Valeria', 'Isabella', 'Sofia', 'Camila', 'Regina', 'Ximena', 
-    'Daniela', 'Alexa', 'Luna', 'Aurora', 'Venus', 'Zafiro', 
-    'Pareja Alex & Dani', 'Pareja Leo & Max', 'Pareja Nicole & Samantha', 'Kassandra'
+
+  const profileDossiers = [
+    {
+      name: 'Pareja Nicole & Samantha',
+      gender: 'Pareja Trans y Trans',
+      role: 'Versátil',
+      lookingFor: ['Soy Escort / Scort', 'Tríos', 'Voyerismo', 'Grabar contenido'],
+      practices: ['Tríos', 'Voyerismo', 'Feminización', 'Lencería y tacones', 'Juguetes eróticos'],
+      bodyType: 'Curvy / Curvilínea',
+      height: 'Media (1.60 m - 1.70 m)',
+      hair: 'Castaño',
+      eye: 'Cafés / Castaños',
+      features: ['Tatuajes', 'Piercings'],
+      logistics: ['Con lugar propio', 'Motel / Hotel'],
+      safety: ['Solo con condón', 'No drogas (Cero sustancias)', 'Pruebas de salud al día'],
+      hobbies: ['Arte y fotografía', 'Viajes y escapadas', 'Moda y shopping'],
+      bio: 'Dúo de chicas trans en complicidad total. Encuentros para parejas y caballeros educados con discreción absoluta.'
+    },
+    {
+      name: 'Pareja Alex & Dani',
+      gender: 'Pareja H y Trans',
+      role: 'Versátil Activo',
+      lookingFor: ['Soy Escort / Scort', 'Gangbang', '2 Romano (DP)', 'Tríos'],
+      practices: ['Gangbang', '2 Romano (DP)', 'Morbo / Dirty talk', 'Oral apasionado'],
+      bodyType: 'Atlética / Fitness',
+      height: 'Alta (> 1.80 m)',
+      hair: 'Negro',
+      eye: 'Negros',
+      features: ['Tatuajes', 'Depilación total'],
+      logistics: ['Con lugar propio'],
+      safety: ['Solo con condón', 'Pruebas de salud al día'],
+      hobbies: ['Fitness / Gym', 'Cine y series', 'Música y festivales'],
+      bio: 'Pareja joven (él chico fitness, ella bella chica trans). Fantasías compartidas, tríos y dobles penetraciones reales.'
+    },
+    {
+      name: 'Pareja Leo & Max',
+      gender: 'Pareja H y H',
+      role: 'Intercambio de roles',
+      lookingFor: ['Cruising', 'Encuentro casual', 'Rapidín', 'Ver nopor'],
+      practices: ['Cruising', 'Rapidín', 'Masturbación mutua', 'Ver nopor', 'XXL / Dotados'],
+      bodyType: 'Musculosa',
+      height: 'Media-Alta (1.70 m - 1.80 m)',
+      hair: 'Castaño',
+      eye: 'Miel / Ámbar',
+      features: ['Vello natural / Barba'],
+      logistics: ['Auto / Cruising', 'Motel / Hotel'],
+      safety: ['A pelo (Bareback / PrEP)', 'Pruebas de salud al día'],
+      hobbies: ['Fitness / Gym', 'Videojuegos y anime', 'Baile y fiesta'],
+      bio: 'Chicos cómplices de mente abierta. Cruising nocturno, acción rápida y complicidad sin complicaciones.'
+    },
+    {
+      name: 'Valeria Diamond',
+      gender: 'Mujer Trans',
+      role: 'Pasivo',
+      lookingFor: ['Soy Escort / Scort', 'Feminización', 'Transformación', 'Juguetes eróticos'],
+      practices: ['Feminización', 'Transformación', 'Lencería y tacones', 'Juguetes eróticos', 'Masajes eróticos'],
+      bodyType: 'Delgada / Slim',
+      height: 'Media (1.60 m - 1.70 m)',
+      hair: 'Rubio',
+      eye: 'Verdes / Claros',
+      features: ['Depilación total'],
+      logistics: ['Con lugar propio', 'Motel / Hotel'],
+      safety: ['Solo con condón', 'No drogas (Cero sustancias)'],
+      hobbies: ['Moda y shopping', 'Gastronomía y vinos', 'Viajes y escapadas'],
+      bio: 'Diosa de la feminización y glamour. Te transformo en sumisa o disfruto ser tu muñeca consentida.'
+    },
+    {
+      name: 'Kassandra Fox',
+      gender: 'Mujer Trans',
+      role: 'Ama / Dominante',
+      lookingFor: ['Soy Escort / Scort', 'Fisting', 'BDSM / Kink', 'XXL / Dotados'],
+      practices: ['Fisting', 'BDSM / Dominación', 'XXL / Dotados', 'Morbo / Dirty talk'],
+      bodyType: 'Atlética / Fitness',
+      height: 'Alta (> 1.80 m)',
+      hair: 'Negro',
+      eye: 'Negros',
+      features: ['Tatuajes', 'Piercings'],
+      logistics: ['Con lugar propio'],
+      safety: ['Solo con condón', 'Pruebas de salud al día'],
+      hobbies: ['Fitness / Gym', 'Arte y fotografía'],
+      bio: 'Dominación sensual y extrema, fisting consentido y sesiones BDSM en mazmorra privada acondicionada.'
+    },
+    {
+      name: 'Luna Travesti Glam',
+      gender: 'TV (Travesti)',
+      role: 'Versátil',
+      lookingFor: ['Feminización', 'Transformación', 'No pago por sexo', 'Amistad y buen rollo'],
+      practices: ['Feminización', 'Transformación', 'Lencería y tacones', 'Oral apasionado'],
+      bodyType: 'Normal / Media',
+      height: 'Media-Alta (1.70 m - 1.80 m)',
+      hair: 'Fantasía / Teñido',
+      eye: 'Cafés / Castaños',
+      features: ['Depilación total'],
+      logistics: ['Sin lugar (a domicilio / motel)', 'Motel / Hotel'],
+      safety: ['Solo con condón', 'No drogas (Cero sustancias)'],
+      hobbies: ['Música y festivales', 'Cine y series'],
+      bio: 'Travesti pasional con vestuario exclusivo. Sesiones de maquillaje, tacones y desinhibición total.'
+    },
+    {
+      name: 'Sissy Mia',
+      gender: 'Sissy',
+      role: 'Sumiso / Esclavo',
+      lookingFor: ['Feminización', 'Voyerismo', 'Exhibicionismo', 'Ver nopor'],
+      practices: ['Feminización', 'Voyerismo', 'Exhibicionismo', 'Ver nopor', 'Masturbación mutua'],
+      bodyType: 'Petit (< 1.60 m)',
+      height: 'Petit (< 1.60 m)',
+      hair: 'Rubio',
+      eye: 'Azules',
+      features: ['Depilación total'],
+      logistics: ['Sin lugar (a domicilio / motel)'],
+      safety: ['Solo con condón', 'No drogas (Cero sustancias)'],
+      hobbies: ['Videojuegos y anime', 'Moda y shopping'],
+      bio: 'Pequeña sissy sumisa dispuesta a complacer. Me encanta el voyerismo, usar lencería de encaje y servir.'
+    },
+    {
+      name: 'Pareja Carlos & Luna',
+      gender: 'Pareja H y Trans',
+      role: 'Versátil',
+      lookingFor: ['Soy Escort / Scort', 'Gangbang', 'Cruising', 'Tríos'],
+      practices: ['Gangbang', 'Cruising', 'Tríos', 'Morbo / Dirty talk', 'XXL / Dotados'],
+      bodyType: 'Curvy / Curvilínea',
+      height: 'Media (1.60 m - 1.70 m)',
+      hair: 'Castaño',
+      eye: 'Miel / Ámbar',
+      features: ['Tatuajes'],
+      logistics: ['Motel / Hotel', 'Auto / Cruising'],
+      safety: ['Solo con condón', 'Pruebas de salud al día'],
+      hobbies: ['Viajes y escapadas', 'Gastronomía y vinos'],
+      bio: 'Encuentros intensos para caballeros que buscan experiencias de trío y gangbang seguro y discreto.'
+    },
+    {
+      name: 'Zafiro Blue',
+      gender: 'Mujer Trans',
+      role: 'Activo',
+      lookingFor: ['Soy Escort / Scort', 'XXL / Dotados', 'Rapidín', '2 Romano (DP)'],
+      practices: ['XXL / Dotados', 'Rapidín', '2 Romano (DP)', 'Oral apasionado'],
+      bodyType: 'Robusta / Chubby',
+      height: 'Alta (> 1.80 m)',
+      hair: 'Negro',
+      eye: 'Cafés / Castaños',
+      features: ['Tatuajes'],
+      logistics: ['Con lugar propio'],
+      safety: ['Solo con condón'],
+      hobbies: ['Cine y series', 'Gastronomía y vinos'],
+      bio: 'Activa dotada con gran tamaño y potencia. Trato varonil para complacer a pasivos y parejas curiosas.'
+    },
+    {
+      name: 'Alexa & Brenda (Doble Trans)',
+      gender: 'Pareja Trans y Trans',
+      role: 'Versátil Pasivo',
+      lookingFor: ['Soy Escort / Scort', 'Grabar contenido', 'Tríos', 'Voyerismo'],
+      practices: ['Tríos', 'Voyerismo', 'Exhibicionismo', 'Juguetes eróticos', 'Feminización'],
+      bodyType: 'Atlética / Fitness',
+      height: 'Media-Alta (1.70 m - 1.80 m)',
+      hair: 'Pelirrojo',
+      eye: 'Verdes / Claros',
+      features: ['Piercings', 'Depilación total'],
+      logistics: ['Con lugar propio', 'Motel / Hotel'],
+      safety: ['Solo con condón', 'Pruebas de salud al día'],
+      hobbies: ['Arte y fotografía', 'Viajes y escapadas'],
+      bio: 'Dos muñecas trans dispuestas a cumplir tus fantasías más secretas. Grabación consentida y voyerismo.'
+    },
+    {
+      name: 'Mateo & Sergio',
+      gender: 'Pareja H y H',
+      role: 'Activo',
+      lookingFor: ['No pago por sexo', 'Cruising', 'Rapidín', 'Masturbación mutua'],
+      practices: ['Cruising', 'Rapidín', 'Masturbación mutua', 'Ver nopor'],
+      bodyType: 'Atlética / Fitness',
+      height: 'Media-Alta (1.70 m - 1.80 m)',
+      hair: 'Rapado / Calvo',
+      eye: 'Negros',
+      features: ['Vello natural / Barba', 'Tatuajes'],
+      logistics: ['Auto / Cruising'],
+      safety: ['A pelo (Bareback / PrEP)', 'Dulces (Chem / Ambiente)'],
+      hobbies: ['Fitness / Gym', 'Baile y fiesta'],
+      bio: 'Chicos morenos atléticos para encuentros espontáneos, cruising sobre ruedas y química inmediata.'
+    },
+    {
+      name: 'Aurora Ross',
+      gender: 'Mujer Trans',
+      role: 'Solo Oral / Intercambio',
+      lookingFor: ['No pago por sexo', 'Grabar contenido', 'Discreción absoluta', 'Amistad y buen rollo'],
+      practices: ['Oral apasionado', 'Ver nopor', 'Masturbación mutua', 'Lencería y tacones'],
+      bodyType: 'Delgada / Slim',
+      height: 'Petit (< 1.60 m)',
+      hair: 'Fantasía / Teñido',
+      eye: 'Azules',
+      features: ['Piercings'],
+      logistics: ['Sin lugar (a domicilio / motel)'],
+      safety: ['Solo con condón', 'No drogas (Cero sustancias)', 'Pruebas de salud al día'],
+      hobbies: ['Videojuegos y anime', 'Música y festivales'],
+      bio: 'Chica trans alternativa. Me encanta crear contenido sensual y compartir momentos divertidos sin costo.'
+    }
   ];
-  const name = names[i % names.length];
 
-  const assignedRole = ROLE_OPTIONS[i % ROLE_OPTIONS.length];
-  const assignedGender = GENDER_OPTIONS[i % GENDER_OPTIONS.length];
-
-  // Distribute varied lookingFor intentions including user's specific targets
-  const lookingForSets = [
-    ['Soy Escort / Scort', 'Encuentro casual'],
-    ['No pago por sexo', 'Amistad y buen rollo'],
-    ['Grabar contenido', 'Citas y romance'],
-    ['Soy Escort / Scort', 'Trato de novios (GFE)'],
-    ['Encuentro casual', 'Discreción absoluta'],
-    ['No pago por sexo', 'Eventos y salidas'],
-    ['Grabar contenido', 'Discreción absoluta'],
-    ['Soy Escort / Scort', 'Fetiches y BDSM']
-  ];
-  const assignedLookingFor = lookingForSets[i % lookingForSets.length];
-
-  // Distribute logistics
-  const logisticsSets = [
-    ['Con lugar propio'],
-    ['Sin lugar (a domicilio / motel)', 'Motel / Hotel'],
-    ['Con lugar propio', 'Motel / Hotel'],
-    ['Motel / Hotel', 'Auto / Cruising'],
-    ['Con lugar propio', 'Auto / Cruising']
-  ];
-  const assignedLogistics = logisticsSets[i % logisticsSets.length];
-
-  // Distribute safety practices
-  const safetySets = [
-    ['Solo con condón', 'No drogas (Cero sustancias)', 'Pruebas de salud al día'],
-    ['A pelo (Bareback / PrEP)', 'Pruebas de salud al día'],
-    ['Solo con condón', 'No drogas (Cero sustancias)'],
-    ['Dulces (Chem / Ambiente)', 'A pelo (Bareback / PrEP)'],
-    ['Solo con condón', 'Pruebas de salud al día']
-  ];
-  const assignedSafety = safetySets[i % safetySets.length];
-
-  // Distribute sexual practices from user's specific list
-  const practicesSets = [
-    ['Feminización', 'Transformación', 'Morbo / Dirty talk', 'Lencería y tacones'],
-    ['Fisting', 'BDSM / Kink', 'XXL / Dotados'],
-    ['Cruising', 'Rapidín', 'Masturbación mutua', 'Auto / Cruising'],
-    ['Gangbang', 'Tríos', '2 Romano (DP)', 'Morbo / Dirty talk'],
-    ['Ver nopor', 'Masturbación mutua', 'Rapidín', 'Juguetes eróticos'],
-    ['Voyerismo', 'Exhibicionismo', 'Grabar contenido', 'Morbo / Dirty talk'],
-    ['2 Romano (DP)', 'Tríos', 'XXL / Dotados', 'Oral apasionado'],
-    ['Feminización', 'Juguetes eróticos', 'Oral apasionado', 'Lencería y tacones']
-  ];
-  const assignedPractices = practicesSets[i % practicesSets.length];
-
-  // Distribute physical traits
-  const assignedBody = BODY_TYPE_OPTIONS[i % BODY_TYPE_OPTIONS.length];
-  const assignedHeight = HEIGHT_OPTIONS[i % HEIGHT_OPTIONS.length];
-  const assignedHair = HAIR_COLOR_OPTIONS[i % HAIR_COLOR_OPTIONS.length];
-  const assignedEye = EYE_COLOR_OPTIONS[i % EYE_COLOR_OPTIONS.length];
-  const assignedFeatures = [
-    PHYSICAL_FEATURES_OPTIONS[i % PHYSICAL_FEATURES_OPTIONS.length],
-    PHYSICAL_FEATURES_OPTIONS[(i + 1) % PHYSICAL_FEATURES_OPTIONS.length]
-  ];
-
-  // Distribute hobbies
-  const hobbiesSets = [
-    ['Viajes y escapadas', 'Gastronomía y vinos', 'Fitness / Gym'],
-    ['Música y festivales', 'Arte y fotografía', 'Cine y series'],
-    ['Videojuegos y anime', 'Cine y series', 'Naturaleza y relax'],
-    ['Baile y fiesta', 'Moda y shopping', 'Viajes y escapadas'],
-    ['Fitness / Gym', 'Naturaleza y relax', 'Gastronomía y vinos'],
-    ['Arte y fotografía', 'Moda y shopping', 'Música y festivales'],
-  ];
-  const assignedHobbies = hobbiesSets[i % hobbiesSets.length];
-
-  const isEscort = assignedLookingFor.includes('Soy Escort / Scort');
+  const dossier = profileDossiers[i % profileDossiers.length];
+  const isEscort = dossier.lookingFor.includes('Soy Escort / Scort');
 
   return {
     id: i + 1,
-    userIdCode: `MMC-${1000 + i}`,
-    name,
-    age: 20 + (i % 14),
+    userIdCode: `MMC-${1020 + i}`,
+    name: i < profileDossiers.length ? dossier.name : `${dossier.name} ${i + 1}`,
+    age: 21 + (i % 12),
     location: `${mun}, ${stateObj.state}`,
     state: stateObj.state,
     municipality: mun,
-    image: `https://picsum.photos/seed/${i + 70}/400/500`,
+    image: `https://picsum.photos/seed/${i + 88}/400/500`,
     isProvider: isEscort || (i % 2 === 0),
-    bio: isEscort 
-      ? 'Atención exclusiva de alto nivel. Trato cálido, discreción inquebrantable e higiene impecable.'
-      : 'Conexión auténtica, excelente química y momentos relajados sin prisas.',
-    profileType: (['sex_worker', 'social', 'dom_sub', 'other_services', 'personal_contact'] as ProfileType[])[i % 5],
-    userType: assignedGender,
-    seeking: assignedLookingFor[0],
-    role: assignedRole,
-    gender: assignedGender,
-    lookingFor: assignedLookingFor,
-    logistics: assignedLogistics,
-    safetyPractices: assignedSafety,
-    sexualPreferences: assignedPractices,
-    bodyType: assignedBody,
-    heightCategory: assignedHeight,
-    hairColor: assignedHair,
-    eyeColor: assignedEye,
-    physicalFeatures: assignedFeatures,
-    hobbies: assignedHobbies,
+    bio: dossier.bio,
+    profileType: (isEscort ? 'sex_worker' : (['social', 'dom_sub', 'personal_contact'] as ProfileType[])[i % 3]),
+    userType: dossier.gender,
+    seeking: dossier.lookingFor[0],
+    role: dossier.role,
+    gender: dossier.gender,
+    lookingFor: dossier.lookingFor,
+    logistics: dossier.logistics,
+    safetyPractices: dossier.safety,
+    sexualPreferences: dossier.practices,
+    bodyType: dossier.bodyType,
+    heightCategory: dossier.height,
+    hairColor: dossier.hair,
+    eyeColor: dossier.eye,
+    physicalFeatures: dossier.features,
+    hobbies: dossier.hobbies,
     isVerified: i % 2 === 0,
-    verificationDoc: i % 4 === 0 ? 'Pasaporte' : 'INE',
-    rating: 4.8,
-    reviewsCount: 12 + (i * 3),
+    verificationDoc: i % 3 === 0 ? 'Pasaporte' : 'INE',
+    rating: 4.9,
+    reviewsCount: 14 + (i * 2),
     onlineStatus: i % 3 === 0 ? 'online' : i % 3 === 1 ? 'incognito' : 'offline',
-    topPosition: i < 4,
-    landingSlug: name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + (i + 1)
+    topPosition: i < 5,
+    landingSlug: dossier.name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + (i + 1)
   };
 });
 
@@ -278,43 +418,42 @@ interface ExplorePageProps {
 }
 
 const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) => {
+  const { count: favoritesCount, isFavorited } = useFavorites();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedMunicipality, setSelectedMunicipality] = useState<string>('all');
   
-  // Advanced filters states
-  const [filterRole, setFilterRole] = useState<string>('all');
-  const [filterGender, setFilterGender] = useState<string>('all');
-  const [filterLookingFor, setFilterLookingFor] = useState<string>('all');
-  
-  // Multi-select arrays
+  // Expanded filter arrays for multi-selection
+  const [filterRoles, setFilterRoles] = useState<string[]>([]);
+  const [filterGenders, setFilterGenders] = useState<string[]>([]);
+  const [filterLookingFor, setFilterLookingFor] = useState<string[]>([]);
+  const [filterSexualPreferences, setFilterSexualPreferences] = useState<string[]>([]);
   const [filterLogistics, setFilterLogistics] = useState<string[]>([]);
   const [filterSafety, setFilterSafety] = useState<string[]>([]);
-  const [filterSexualPreferences, setFilterSexualPreferences] = useState<string[]>([]);
   
   // Physical traits
-  const [filterBodyType, setFilterBodyType] = useState<string>('all');
-  const [filterHeight, setFilterHeight] = useState<string>('all');
-  const [filterHairColor, setFilterHairColor] = useState<string>('all');
-  const [filterEyeColor, setFilterEyeColor] = useState<string>('all');
+  const [filterHeights, setFilterHeights] = useState<string[]>([]);
+  const [filterEyeColors, setFilterEyeColors] = useState<string[]>([]);
+  const [filterHairColors, setFilterHairColors] = useState<string[]>([]);
+  const [filterBodyTypes, setFilterBodyTypes] = useState<string[]>([]);
   const [filterPhysicalFeatures, setFilterPhysicalFeatures] = useState<string[]>([]);
 
-  // Hobbies
+  // Hobbies & Toggles
   const [filterHobbies, setFilterHobbies] = useState<string[]>([]);
-
-  // Toggles
   const [filterVerifiedOnly, setFilterVerifiedOnly] = useState<boolean>(false);
   const [filterTopOnly, setFilterTopOnly] = useState<boolean>(false);
+  const [filterOnlineOnly, setFilterOnlineOnly] = useState<boolean>(false);
+  const [filterFavoritesOnly, setFilterFavoritesOnly] = useState<boolean>(false);
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
-  // Accordion collapsed states for cleaner sidebar navigation
+  // Accordion collapsed states for sidebar navigation
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     identity: true,
     intent: true,
-    logistics: true,
-    safety: true,
     practices: true,
     physical: true,
+    safety: true,
+    logistics: true,
     hobbies: false
   });
 
@@ -329,8 +468,8 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     return found ? found.municipios : [];
   }, [selectedState]);
 
-  // Array togglers helper
-  const toggleArrayItem = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
+  // Array toggler helper
+  const toggleItem = (list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
     setList(prev => prev.includes(item) ? prev.filter(x => x !== item) : [...prev, item]);
   };
 
@@ -338,20 +477,22 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     setSearchTerm('');
     setSelectedState('all');
     setSelectedMunicipality('all');
-    setFilterRole('all');
-    setFilterGender('all');
-    setFilterLookingFor('all');
+    setFilterRoles([]);
+    setFilterGenders([]);
+    setFilterLookingFor([]);
+    setFilterSexualPreferences([]);
     setFilterLogistics([]);
     setFilterSafety([]);
-    setFilterSexualPreferences([]);
-    setFilterBodyType('all');
-    setFilterHeight('all');
-    setFilterHairColor('all');
-    setFilterEyeColor('all');
+    setFilterHeights([]);
+    setFilterEyeColors([]);
+    setFilterHairColors([]);
+    setFilterBodyTypes([]);
     setFilterPhysicalFeatures([]);
     setFilterHobbies([]);
     setFilterVerifiedOnly(false);
     setFilterTopOnly(false);
+    setFilterOnlineOnly(false);
+    setFilterFavoritesOnly(false);
   };
 
   // Active filters count
@@ -359,29 +500,32 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     let count = 0;
     if (selectedState !== 'all') count++;
     if (selectedMunicipality !== 'all') count++;
-    if (filterRole !== 'all') count++;
-    if (filterGender !== 'all') count++;
-    if (filterLookingFor !== 'all') count++;
-    if (filterBodyType !== 'all') count++;
-    if (filterHeight !== 'all') count++;
-    if (filterHairColor !== 'all') count++;
-    if (filterEyeColor !== 'all') count++;
     if (filterVerifiedOnly) count++;
     if (filterTopOnly) count++;
+    if (filterOnlineOnly) count++;
+    if (filterFavoritesOnly) count++;
+    count += filterRoles.length;
+    count += filterGenders.length;
+    count += filterLookingFor.length;
+    count += filterSexualPreferences.length;
     count += filterLogistics.length;
     count += filterSafety.length;
-    count += filterSexualPreferences.length;
+    count += filterHeights.length;
+    count += filterEyeColors.length;
+    count += filterHairColors.length;
+    count += filterBodyTypes.length;
     count += filterPhysicalFeatures.length;
     count += filterHobbies.length;
     return count;
   }, [
-    selectedState, selectedMunicipality, filterRole, filterGender, filterLookingFor,
-    filterBodyType, filterHeight, filterHairColor, filterEyeColor, filterVerifiedOnly,
-    filterTopOnly, filterLogistics, filterSafety, filterSexualPreferences,
-    filterPhysicalFeatures, filterHobbies
+    selectedState, selectedMunicipality, filterVerifiedOnly, filterTopOnly, filterOnlineOnly,
+    filterFavoritesOnly,
+    filterRoles, filterGenders, filterLookingFor, filterSexualPreferences,
+    filterLogistics, filterSafety, filterHeights, filterEyeColors, filterHairColors,
+    filterBodyTypes, filterPhysicalFeatures, filterHobbies
   ]);
 
-  // Filtering engine
+  // Filtering engine with comprehensive matching
   const filteredProfiles = useMemo(() => {
     return mockProfiles.filter(profile => {
       // Search term
@@ -392,7 +536,9 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
         const matchesLoc = (profile.location || '').toLowerCase().includes(query);
         const matchesRole = (profile.role || '').toLowerCase().includes(query);
         const matchesGender = (profile.gender || '').toLowerCase().includes(query);
-        if (!matchesName && !matchesBio && !matchesLoc && !matchesRole && !matchesGender) {
+        const matchesLookingFor = profile.lookingFor?.some(item => item.toLowerCase().includes(query));
+        const matchesPractices = profile.sexualPreferences?.some(item => item.toLowerCase().includes(query));
+        if (!matchesName && !matchesBio && !matchesLoc && !matchesRole && !matchesGender && !matchesLookingFor && !matchesPractices) {
           return false;
         }
       }
@@ -401,70 +547,95 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
       if (selectedState !== 'all' && profile.state !== selectedState) return false;
       if (selectedMunicipality !== 'all' && profile.municipality !== selectedMunicipality) return false;
 
-      // Role
-      if (filterRole !== 'all' && profile.role !== filterRole) return false;
-
-      // Gender (including Pareja Trans y Trans, Pareja H y Trans, Pareja H y H)
-      if (filterGender !== 'all' && profile.gender !== filterGender) return false;
-
-      // Looking for (¿Qué busco?)
-      if (filterLookingFor !== 'all') {
-        if (!profile.lookingFor || !profile.lookingFor.includes(filterLookingFor)) {
-          return false;
-        }
+      // Role filter (matches if any selected role matches)
+      if (filterRoles.length > 0 && (!profile.role || !filterRoles.includes(profile.role))) {
+        return false;
       }
 
-      // Logistics (Con lugar, Sin lugar, Motel)
-      if (filterLogistics.length > 0) {
-        const hasAnyLogistics = filterLogistics.some(item => profile.logistics?.includes(item));
-        if (!hasAnyLogistics) return false;
+      // Gender filter (specifically supports Pareja Trans y Trans, Pareja H y Trans, Pareja H y H, etc.)
+      if (filterGenders.length > 0 && (!profile.gender || !filterGenders.includes(profile.gender))) {
+        return false;
       }
 
-      // Safety (Solo con condón, A pelo, No drogas, Dulces)
-      if (filterSafety.length > 0) {
-        const hasAnySafety = filterSafety.some(item => profile.safetyPractices?.includes(item));
-        if (!hasAnySafety) return false;
+      // What I'm Looking For filter (matches if profile has ANY of selected options)
+      if (filterLookingFor.length > 0) {
+        const hasLookingFor = filterLookingFor.some(item => profile.lookingFor?.includes(item));
+        const hasPractice = filterLookingFor.some(item => profile.sexualPreferences?.includes(item));
+        if (!hasLookingFor && !hasPractice) return false;
       }
 
-      // Sexual preferences / practices (Feminización, Fisting, Cruising, Gangbang, 2 Romano, etc.)
+      // Sexual practices / kinks
       if (filterSexualPreferences.length > 0) {
-        const hasAnyPractice = filterSexualPreferences.some(item => profile.sexualPreferences?.includes(item));
-        if (!hasAnyPractice) return false;
+        const hasPractice = filterSexualPreferences.some(item => profile.sexualPreferences?.includes(item));
+        if (!hasPractice) return false;
       }
 
-      // Physical traits
-      if (filterBodyType !== 'all' && profile.bodyType !== filterBodyType) return false;
-      if (filterHeight !== 'all' && profile.heightCategory !== filterHeight) return false;
-      if (filterHairColor !== 'all' && profile.hairColor !== filterHairColor) return false;
-      if (filterEyeColor !== 'all' && profile.eyeColor !== filterEyeColor) return false;
+      // Logistics (Con lugar, Sin lugar, Motel, etc.)
+      if (filterLogistics.length > 0) {
+        const hasLogistics = filterLogistics.some(item => profile.logistics?.includes(item));
+        if (!hasLogistics) return false;
+      }
+
+      // Safety & Prevention (Solo con condón, A pelo, No drogas, Dulces)
+      if (filterSafety.length > 0) {
+        const hasSafety = filterSafety.some(item => profile.safetyPractices?.includes(item));
+        if (!hasSafety) return false;
+      }
+
+      // Physical: Height (Estatura)
+      if (filterHeights.length > 0 && (!profile.heightCategory || !filterHeights.includes(profile.heightCategory))) {
+        return false;
+      }
+
+      // Physical: Eye Color (Color de ojos)
+      if (filterEyeColors.length > 0 && (!profile.eyeColor || !filterEyeColors.includes(profile.eyeColor))) {
+        return false;
+      }
+
+      // Physical: Hair Color (Color de cabello)
+      if (filterHairColors.length > 0 && (!profile.hairColor || !filterHairColors.includes(profile.hairColor))) {
+        return false;
+      }
+
+      // Physical: Body Type (Complexión)
+      if (filterBodyTypes.length > 0 && (!profile.bodyType || !filterBodyTypes.includes(profile.bodyType))) {
+        return false;
+      }
+
+      // Physical Features (Tatuajes, Piercings, etc.)
       if (filterPhysicalFeatures.length > 0) {
-        const hasAnyFeature = filterPhysicalFeatures.some(f => profile.physicalFeatures?.includes(f));
-        if (!hasAnyFeature) return false;
+        const hasFeature = filterPhysicalFeatures.some(f => profile.physicalFeatures?.includes(f));
+        if (!hasFeature) return false;
       }
 
       // Hobbies
       if (filterHobbies.length > 0) {
-        const hasAnyHobby = filterHobbies.some(h => profile.hobbies?.includes(h));
-        if (!hasAnyHobby) return false;
+        const hasHobby = filterHobbies.some(h => profile.hobbies?.includes(h));
+        if (!hasHobby) return false;
       }
 
-      // Verified & Top
+      // Verified & Top & Online
       if (filterVerifiedOnly && !profile.isVerified) return false;
       if (filterTopOnly && !profile.topPosition) return false;
+      if (filterOnlineOnly && profile.onlineStatus !== 'online') return false;
+
+      // Favorites Only
+      if (filterFavoritesOnly && !isFavorited(profile.id)) return false;
 
       return true;
     });
   }, [
-    searchTerm, selectedState, selectedMunicipality, filterRole, filterGender,
-    filterLookingFor, filterLogistics, filterSafety, filterSexualPreferences,
-    filterBodyType, filterHeight, filterHairColor, filterEyeColor,
-    filterPhysicalFeatures, filterHobbies, filterVerifiedOnly, filterTopOnly
+    searchTerm, selectedState, selectedMunicipality, filterRoles, filterGenders,
+    filterLookingFor, filterSexualPreferences, filterLogistics, filterSafety,
+    filterHeights, filterEyeColors, filterHairColors, filterBodyTypes,
+    filterPhysicalFeatures, filterHobbies, filterVerifiedOnly, filterTopOnly, filterOnlineOnly,
+    filterFavoritesOnly, isFavorited
   ]);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 pb-16">
       {/* Top Header Banner */}
-      <div className="border-b border-neutral-800 bg-neutral-900/60 sticky top-0 z-20 backdrop-blur-md">
+      <div className="border-b border-neutral-800 bg-neutral-900/80 sticky top-0 z-20 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -472,23 +643,47 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
               <span>Explorador & Filtros Avanzados</span>
             </h1>
             <p className="text-xs text-neutral-400">
-              Filtra con precisión: Género, Rol, Qué Busco, Prácticas Íntimas, Logística y Rasgos Físicos.
+              Taxonomía completa: Rol, Género & Parejas, Qué Busco, Prácticas Íntimas, Rasgos Físicos, Logística y Salud.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Quick Favorites Filter Toggle */}
+            <button
+              onClick={() => setFilterFavoritesOnly(!filterFavoritesOnly)}
+              className={`text-xs font-semibold py-1.5 px-3 rounded-lg border flex items-center gap-1.5 transition-colors ${
+                filterFavoritesOnly
+                  ? 'bg-rose-600 text-white border-rose-500 shadow-sm'
+                  : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700'
+              }`}
+              title="Filtrar únicamente mis perfiles guardados"
+            >
+              <Heart className={`w-3.5 h-3.5 ${filterFavoritesOnly ? 'fill-current text-white' : 'text-rose-400'}`} />
+              <span>Guardados {favoritesCount > 0 ? `(${favoritesCount})` : ''}</span>
+            </button>
+
+            {onNavigate && favoritesCount > 0 && (
+              <button
+                onClick={() => onNavigate('profile' as Page)}
+                className="hidden sm:flex text-xs font-semibold py-1.5 px-3 rounded-lg border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 text-amber-300 hover:text-white items-center gap-1.5 transition-colors"
+                title="Abrir la sección de Favoritos en Mi Perfil"
+              >
+                <span>Bóveda ➔</span>
+              </button>
+            )}
+
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="md:hidden flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold py-2 px-3 rounded-lg border border-neutral-700"
+              className="md:hidden flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold py-2 px-3 rounded-lg border border-neutral-700 transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4 text-rose-400" />
-              <span>Filtros Avanzados {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
+              <span>Filtros Completos {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
             </button>
 
             {activeFiltersCount > 0 && (
               <button
                 onClick={handleResetFilters}
-                className="text-xs text-neutral-400 hover:text-rose-400 flex items-center gap-1 py-1.5 px-2.5 rounded border border-neutral-800 bg-neutral-900 transition-colors"
+                className="text-xs text-neutral-400 hover:text-rose-400 flex items-center gap-1 py-1.5 px-2.5 rounded-lg border border-neutral-800 bg-neutral-900 transition-colors"
                 title="Reiniciar todos los filtros"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -509,7 +704,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
               <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="w-4 h-4 text-rose-400" />
-                  <span className="text-sm font-bold text-white">Filtros Activos</span>
+                  <span className="text-sm font-bold text-white">Filtros Avanzados</span>
                   {activeFiltersCount > 0 && (
                     <span className="bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                       {activeFiltersCount}
@@ -522,13 +717,13 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                     className="text-[11px] text-neutral-400 hover:text-rose-400 flex items-center gap-1 transition-colors"
                   >
                     <RotateCcw className="w-3 h-3" />
-                    <span>Limpiar</span>
+                    <span>Limpiar todo</span>
                   </button>
                 )}
               </div>
 
               {/* 1. Ubicación (Estado & Municipio) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-2.5">
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-2.5">
                 <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-rose-400" /> Ubicación
                 </span>
@@ -541,7 +736,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                       setSelectedState(e.target.value);
                       setSelectedMunicipality('all');
                     }}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+                    className="w-full bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs rounded-lg p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
                   >
                     <option value="all">Todos los Estados (México)</option>
                     {MEXICO_STATES_DATA.map((st) => (
@@ -556,7 +751,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                     <select
                       value={selectedMunicipality}
                       onChange={(e) => setSelectedMunicipality(e.target.value)}
-                      className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+                      className="w-full bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs rounded-lg p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
                     >
                       <option value="all">Todos los municipios</option>
                       {availableMunicipios.map((mun) => (
@@ -567,229 +762,149 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 )}
               </div>
 
-              {/* 2. Identidad: Rol & Género (Including Pareja Trans y Trans, Pareja H y Trans, Pareja H y H) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
+              {/* 2. Identidad: Género / Modalidad (Destacando Pareja Trans y Trans, Pareja H y Trans, Pareja H y H) */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
                 <button
                   type="button"
                   onClick={() => toggleSection('identity')}
                   className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
                 >
                   <span className="flex items-center gap-1.5">
-                    <UserCheck className="w-3.5 h-3.5 text-rose-400" /> Rol & Género
+                    <Users className="w-3.5 h-3.5 text-rose-400" /> Género & Modalidad
+                    {filterGenders.length > 0 && (
+                      <span className="bg-rose-950 border border-rose-800 text-rose-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                        {filterGenders.length}
+                      </span>
+                    )}
                   </span>
                   {expandedSections.identity ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
                 </button>
 
                 {expandedSections.identity && (
-                  <div className="space-y-3 pt-1">
-                    {/* Preferencia de Rol */}
-                    <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1">Preferencia de Rol</label>
-                      <select
-                        value={filterRole}
-                        onChange={(e) => setFilterRole(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                      >
-                        <option value="all">Todos los roles</option>
-                        {ROLE_OPTIONS.map((role) => (
-                          <option key={role} value={role}>{role}</option>
-                        ))}
-                      </select>
+                  <div className="space-y-2 pt-1">
+                    <p className="text-[11px] text-neutral-400">Modalidades y géneros (selección múltiple):</p>
+                    
+                    {/* Featured Couplet tags */}
+                    <div className="space-y-1 mb-2">
+                      <span className="text-[10px] uppercase font-bold text-amber-400/90 tracking-wider block">
+                        ★ Parejas Solicitadas
+                      </span>
+                      <div className="flex flex-col gap-1">
+                        {['Pareja Trans y Trans', 'Pareja H y Trans', 'Pareja H y H'].map((item) => {
+                          const selected = filterGenders.includes(item);
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleItem(filterGenders, setFilterGenders, item)}
+                              className={`text-xs px-2.5 py-1.5 rounded-lg border text-left flex items-center justify-between transition-all ${
+                                selected
+                                  ? 'bg-rose-950/70 border-rose-500 text-white font-semibold shadow-sm'
+                                  : 'bg-neutral-950/80 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                              }`}
+                            >
+                              <span>{item}</span>
+                              <span className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[10px] border ${selected ? 'bg-rose-600 border-rose-500 text-white' : 'border-neutral-700'}`}>
+                                {selected && '✓'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Género */}
-                    <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1">
-                        Identidad de Género / Modalidad
-                      </label>
-                      <select
-                        value={filterGender}
-                        onChange={(e) => setFilterGender(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                      >
-                        <option value="all">Todos los géneros / parejas</option>
-                        {GENDER_OPTIONS.map((g) => (
-                          <option key={g} value={g}>{g}</option>
-                        ))}
-                      </select>
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        {['Pareja Trans y Trans', 'Pareja H y Trans', 'Pareja H y H'].map((item) => (
+                    {/* Rest of gender identities */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {GENDER_OPTIONS.filter(g => !['Pareja Trans y Trans', 'Pareja H y Trans', 'Pareja H y H'].includes(g)).map((g) => {
+                        const selected = filterGenders.includes(g);
+                        return (
                           <button
-                            key={item}
+                            key={g}
                             type="button"
-                            onClick={() => setFilterGender(filterGender === item ? 'all' : item)}
-                            className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
-                              filterGender === item
+                            onClick={() => toggleItem(filterGenders, setFilterGenders, g)}
+                            className={`text-[11px] px-2.5 py-1 rounded-md border transition-all ${
+                              selected
                                 ? 'bg-rose-900/60 border-rose-500 text-white font-medium'
                                 : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
                             }`}
                           >
-                            {item}
+                            {selected && '✓ '}
+                            {g}
                           </button>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* 3. Intención: ¿Qué busco? (Including Soy Escort / Scort, No pago por sexo, Grabar contenido) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
+              {/* 3. Preferencia de Rol */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-amber-400" /> Preferencia de Rol
+                    {filterRoles.length > 0 && (
+                      <span className="bg-amber-950 border border-amber-800 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                        {filterRoles.length}
+                      </span>
+                    )}
+                  </span>
+                </span>
+
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {ROLE_OPTIONS.map((role) => {
+                    const selected = filterRoles.includes(role);
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => toggleItem(filterRoles, setFilterRoles, role)}
+                        className={`text-[11px] px-2.5 py-1 rounded-md border transition-all ${
+                          selected
+                            ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-semibold shadow-sm'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                        }`}
+                      >
+                        {selected && '✓ '}
+                        {role}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. ¿Qué Busco? / Servicios & Intenciones (Con Scort, Feminización, Fisting, Cruising, Gangbang, Voyerismo, etc.) */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
                 <button
                   type="button"
                   onClick={() => toggleSection('intent')}
                   className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
                 >
                   <span className="flex items-center gap-1.5">
-                    <HeartHandshake className="w-3.5 h-3.5 text-amber-400" /> ¿Qué Busco? / Intención
+                    <HeartHandshake className="w-3.5 h-3.5 text-rose-400" /> ¿Qué Busco? / Servicios
+                    {filterLookingFor.length > 0 && (
+                      <span className="bg-rose-950 border border-rose-800 text-rose-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                        {filterLookingFor.length}
+                      </span>
+                    )}
                   </span>
                   {expandedSections.intent ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
                 </button>
 
                 {expandedSections.intent && (
                   <div className="space-y-2 pt-1">
-                    <select
-                      value={filterLookingFor}
-                      onChange={(e) => setFilterLookingFor(e.target.value)}
-                      className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                    >
-                      <option value="all">Cualquier intención / búsqueda</option>
-                      {LOOKING_FOR_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {['Soy Escort / Scort', 'No pago por sexo', 'Grabar contenido'].map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => setFilterLookingFor(filterLookingFor === item ? 'all' : item)}
-                          className={`text-[10px] px-2 py-1 rounded border transition-colors flex items-center gap-1 ${
-                            filterLookingFor === item
-                              ? 'bg-amber-950/70 border-amber-500 text-amber-300 font-semibold'
-                              : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
-                          }`}
-                        >
-                          {filterLookingFor === item && <Check className="w-2.5 h-2.5" />}
-                          <span>{item}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 4. Logística del Encuentro (Con lugar, Sin lugar, Motel, etc.) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('logistics')}
-                  className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-blue-400" /> Logística de Encuentro
-                  </span>
-                  {expandedSections.logistics ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
-                </button>
-
-                {expandedSections.logistics && (
-                  <div className="space-y-1.5 pt-1">
-                    {LOGISTICS_OPTIONS.map((item) => {
-                      const selected = filterLogistics.includes(item);
-                      return (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => toggleArrayItem(filterLogistics, setFilterLogistics, item)}
-                          className={`w-full text-left text-xs p-2 rounded-md border transition-all flex items-center justify-between ${
-                            selected
-                              ? 'bg-blue-950/40 border-blue-500/80 text-blue-200'
-                              : 'bg-neutral-950 border-neutral-800/80 text-neutral-400 hover:text-neutral-200'
-                          }`}
-                        >
-                          <span>{item}</span>
-                          <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${selected ? 'bg-blue-600 border-blue-500 text-white' : 'border-neutral-700'}`}>
-                            {selected && '✓'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* 5. Cuidado & Salud Sexual (Solo con condón, A pelo, No drogas, Dulces) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('safety')}
-                  className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Cuidado, Salud & Prevención
-                  </span>
-                  {expandedSections.safety ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
-                </button>
-
-                {expandedSections.safety && (
-                  <div className="space-y-1.5 pt-1">
-                    {SAFETY_PRACTICES_OPTIONS.map((item) => {
-                      const selected = filterSafety.includes(item);
-                      return (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => toggleArrayItem(filterSafety, setFilterSafety, item)}
-                          className={`w-full text-left text-xs p-2 rounded-md border transition-all flex items-center justify-between ${
-                            selected
-                              ? 'bg-emerald-950/40 border-emerald-500/80 text-emerald-200'
-                              : 'bg-neutral-950 border-neutral-800/80 text-neutral-400 hover:text-neutral-200'
-                          }`}
-                        >
-                          <span>{item}</span>
-                          <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${selected ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-neutral-700'}`}>
-                            {selected && '✓'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* 6. Gustos & Prácticas Sexuales (Feminización, Fisting, Cruising, Gangbang, 2 Romano, etc.) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('practices')}
-                  className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5 text-rose-500" /> Gustos & Prácticas Sexuales
-                    {filterSexualPreferences.length > 0 && (
-                      <span className="text-[10px] bg-rose-950 border border-rose-800 text-rose-300 px-1.5 rounded">
-                        {filterSexualPreferences.length}
-                      </span>
-                    )}
-                  </span>
-                  {expandedSections.practices ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
-                </button>
-
-                {expandedSections.practices && (
-                  <div className="pt-1">
-                    <p className="text-[11px] text-neutral-400 mb-2">Selecciona las prácticas de tu preferencia:</p>
-                    <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
-                      {SEXUAL_PRACTICES_OPTIONS.map((item) => {
-                        const selected = filterSexualPreferences.includes(item);
+                    <p className="text-[11px] text-neutral-400">Selecciona intenciones o modalidades:</p>
+                    <div className="flex flex-wrap gap-1.5 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                      {LOOKING_FOR_OPTIONS.map((item) => {
+                        const selected = filterLookingFor.includes(item);
                         return (
                           <button
                             key={item}
                             type="button"
-                            onClick={() => toggleArrayItem(filterSexualPreferences, setFilterSexualPreferences, item)}
+                            onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, item)}
                             className={`text-[11px] px-2.5 py-1 rounded-md border transition-all ${
                               selected
-                                ? 'bg-rose-900/60 border-rose-500 text-white font-medium shadow-sm'
+                                ? 'bg-rose-950/70 border-rose-500 text-rose-200 font-semibold shadow-sm'
                                 : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
                             }`}
                           >
@@ -803,84 +918,141 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 )}
               </div>
 
-              {/* 7. Rasgos Físicos & Apariencia (Complexión, Estatura, Cabello, Ojos) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
+              {/* 5. Rasgos Físicos & Apariencia (Estatura, Color de Ojos, Color de Cabello, Complexión) */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
                 <button
                   type="button"
                   onClick={() => toggleSection('physical')}
                   className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
                 >
                   <span className="flex items-center gap-1.5">
-                    <Palette className="w-3.5 h-3.5 text-amber-400" /> Rasgos Físicos & Apariencia
+                    <Palette className="w-3.5 h-3.5 text-amber-400" /> Rasgos Físicos
+                    {(filterHeights.length + filterEyeColors.length + filterHairColors.length + filterBodyTypes.length) > 0 && (
+                      <span className="bg-amber-950 border border-amber-800 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                        {filterHeights.length + filterEyeColors.length + filterHairColors.length + filterBodyTypes.length}
+                      </span>
+                    )}
                   </span>
                   {expandedSections.physical ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
                 </button>
 
                 {expandedSections.physical && (
-                  <div className="space-y-2.5 pt-1">
-                    {/* Complexión */}
+                  <div className="space-y-3 pt-1">
+                    {/* Estatura (Height) */}
                     <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1">Complexión</label>
-                      <select
-                        value={filterBodyType}
-                        onChange={(e) => setFilterBodyType(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                      >
-                        <option value="all">Cualquier complexión</option>
-                        {BODY_TYPE_OPTIONS.map((bt) => (
-                          <option key={bt} value={bt}>{bt}</option>
-                        ))}
-                      </select>
+                      <span className="text-[11px] font-semibold text-neutral-300 flex items-center gap-1 mb-1.5">
+                        <Ruler className="w-3 h-3 text-amber-400" /> Estatura
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {HEIGHT_OPTIONS.map((h) => {
+                          const selected = filterHeights.includes(h);
+                          return (
+                            <button
+                              key={h}
+                              type="button"
+                              onClick={() => toggleItem(filterHeights, setFilterHeights, h)}
+                              className={`text-[10px] p-1.5 rounded border text-left truncate transition-colors ${
+                                selected
+                                  ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-medium'
+                                  : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                              }`}
+                            >
+                              {selected && '✓ '}
+                              {h}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Estatura */}
+                    {/* Color de Ojos (Eye color with visual dots) */}
                     <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1">Estatura</label>
-                      <select
-                        value={filterHeight}
-                        onChange={(e) => setFilterHeight(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                      >
-                        <option value="all">Cualquier estatura</option>
-                        {HEIGHT_OPTIONS.map((h) => (
-                          <option key={h} value={h}>{h}</option>
-                        ))}
-                      </select>
+                      <span className="text-[11px] font-semibold text-neutral-300 flex items-center gap-1 mb-1.5">
+                        <Eye className="w-3 h-3 text-cyan-400" /> Color de Ojos
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {EYE_COLOR_OPTIONS.map((item) => {
+                          const selected = filterEyeColors.includes(item.label);
+                          return (
+                            <button
+                              key={item.label}
+                              type="button"
+                              onClick={() => toggleItem(filterEyeColors, setFilterEyeColors, item.label)}
+                              className={`text-[10px] px-2 py-1 rounded-md border flex items-center gap-1.5 transition-colors ${
+                                selected
+                                  ? 'bg-cyan-950/70 border-cyan-500 text-cyan-200 font-medium'
+                                  : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                              }`}
+                            >
+                              <span 
+                                className="w-2.5 h-2.5 rounded-full border border-neutral-600 shrink-0" 
+                                style={{ backgroundColor: item.hex }}
+                              />
+                              <span>{item.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Color de Cabello */}
+                    {/* Color de Cabello (Hair color with visual dots) */}
                     <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1">Color de Cabello</label>
-                      <select
-                        value={filterHairColor}
-                        onChange={(e) => setFilterHairColor(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                      >
-                        <option value="all">Cualquier color de cabello</option>
-                        {HAIR_COLOR_OPTIONS.map((hc) => (
-                          <option key={hc} value={hc}>{hc}</option>
-                        ))}
-                      </select>
+                      <span className="text-[11px] font-semibold text-neutral-300 flex items-center gap-1 mb-1.5">
+                        <Sparkles className="w-3 h-3 text-pink-400" /> Color de Cabello
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {HAIR_COLOR_OPTIONS.map((item) => {
+                          const selected = filterHairColors.includes(item.label);
+                          return (
+                            <button
+                              key={item.label}
+                              type="button"
+                              onClick={() => toggleItem(filterHairColors, setFilterHairColors, item.label)}
+                              className={`text-[10px] px-2 py-1 rounded-md border flex items-center gap-1.5 transition-colors ${
+                                selected
+                                  ? 'bg-pink-950/70 border-pink-500 text-pink-200 font-medium'
+                                  : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                              }`}
+                            >
+                              <span 
+                                className="w-2.5 h-2.5 rounded-full border border-neutral-600 shrink-0" 
+                                style={{ backgroundColor: item.hex }}
+                              />
+                              <span>{item.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Color de Ojos */}
+                    {/* Complexión (Body type) */}
                     <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1">Color de Ojos</label>
-                      <select
-                        value={filterEyeColor}
-                        onChange={(e) => setFilterEyeColor(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                      >
-                        <option value="all">Cualquier color de ojos</option>
-                        {EYE_COLOR_OPTIONS.map((ec) => (
-                          <option key={ec} value={ec}>{ec}</option>
-                        ))}
-                      </select>
+                      <span className="text-[11px] font-semibold text-neutral-300 block mb-1.5">Complexión</span>
+                      <div className="flex flex-wrap gap-1">
+                        {BODY_TYPE_OPTIONS.map((bt) => {
+                          const selected = filterBodyTypes.includes(bt);
+                          return (
+                            <button
+                              key={bt}
+                              type="button"
+                              onClick={() => toggleItem(filterBodyTypes, setFilterBodyTypes, bt)}
+                              className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                                selected
+                                  ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-medium'
+                                  : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                              }`}
+                            >
+                              {selected && '✓ '}
+                              {bt}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Atributos / Rasgos distintivos */}
+                    {/* Rasgos distintivos */}
                     <div>
-                      <label className="text-[11px] text-neutral-400 font-medium block mb-1.5">Atributos distintivos</label>
+                      <span className="text-[11px] font-semibold text-neutral-300 block mb-1.5">Atributos distintivos</span>
                       <div className="flex flex-wrap gap-1">
                         {PHYSICAL_FEATURES_OPTIONS.map((item) => {
                           const selected = filterPhysicalFeatures.includes(item);
@@ -888,7 +1060,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                             <button
                               key={item}
                               type="button"
-                              onClick={() => toggleArrayItem(filterPhysicalFeatures, setFilterPhysicalFeatures, item)}
+                              onClick={() => toggleItem(filterPhysicalFeatures, setFilterPhysicalFeatures, item)}
                               className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
                                 selected
                                   ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-medium'
@@ -906,8 +1078,141 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 )}
               </div>
 
-              {/* 8. Pasatiempos (Hobbies) */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-3">
+              {/* 6. Gustos & Prácticas Sexuales (Kinks, Fetishes & Acciones) */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('practices')}
+                  className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-rose-500" /> Gustos & Prácticas Sexuales
+                    {filterSexualPreferences.length > 0 && (
+                      <span className="text-[10px] bg-rose-950 border border-rose-800 text-rose-300 px-1.5 rounded-full font-bold">
+                        {filterSexualPreferences.length}
+                      </span>
+                    )}
+                  </span>
+                  {expandedSections.practices ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                </button>
+
+                {expandedSections.practices && (
+                  <div className="pt-1">
+                    <p className="text-[11px] text-neutral-400 mb-2">Fetiches y gustos específicos:</p>
+                    <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                      {SEXUAL_PRACTICES_OPTIONS.map((item) => {
+                        const selected = filterSexualPreferences.includes(item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => toggleItem(filterSexualPreferences, setFilterSexualPreferences, item)}
+                            className={`text-[11px] px-2.5 py-1 rounded-md border transition-all ${
+                              selected
+                                ? 'bg-rose-900/60 border-rose-500 text-white font-medium shadow-sm'
+                                : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                            }`}
+                          >
+                            {selected && '✓ '}
+                            {item}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 7. Logística del Encuentro */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('logistics')}
+                  className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-blue-400" /> Logística de Encuentro
+                    {filterLogistics.length > 0 && (
+                      <span className="text-[10px] bg-blue-950 border border-blue-800 text-blue-300 px-1.5 rounded-full font-bold">
+                        {filterLogistics.length}
+                      </span>
+                    )}
+                  </span>
+                  {expandedSections.logistics ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                </button>
+
+                {expandedSections.logistics && (
+                  <div className="space-y-1.5 pt-1">
+                    {LOGISTICS_OPTIONS.map((item) => {
+                      const selected = filterLogistics.includes(item);
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => toggleItem(filterLogistics, setFilterLogistics, item)}
+                          className={`w-full text-left text-xs p-2 rounded-lg border transition-all flex items-center justify-between ${
+                            selected
+                              ? 'bg-blue-950/50 border-blue-500 text-blue-200 font-medium'
+                              : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                          }`}
+                        >
+                          <span>{item}</span>
+                          <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${selected ? 'bg-blue-600 border-blue-500 text-white' : 'border-neutral-700'}`}>
+                            {selected && '✓'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* 8. Cuidado, Salud & Prevención */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('safety')}
+                  className="w-full flex items-center justify-between text-xs font-semibold text-neutral-300 uppercase tracking-wider text-left"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Salud & Prevención
+                    {filterSafety.length > 0 && (
+                      <span className="text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-300 px-1.5 rounded-full font-bold">
+                        {filterSafety.length}
+                      </span>
+                    )}
+                  </span>
+                  {expandedSections.safety ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                </button>
+
+                {expandedSections.safety && (
+                  <div className="space-y-1.5 pt-1">
+                    {SAFETY_PRACTICES_OPTIONS.map((item) => {
+                      const selected = filterSafety.includes(item);
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => toggleItem(filterSafety, setFilterSafety, item)}
+                          className={`w-full text-left text-xs p-2 rounded-lg border transition-all flex items-center justify-between ${
+                            selected
+                              ? 'bg-emerald-950/50 border-emerald-500 text-emerald-200 font-medium'
+                              : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                          }`}
+                        >
+                          <span>{item}</span>
+                          <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${selected ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-neutral-700'}`}>
+                            {selected && '✓'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* 9. Pasatiempos (Hobbies) */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-3">
                 <button
                   type="button"
                   onClick={() => toggleSection('hobbies')}
@@ -916,7 +1221,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                   <span className="flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5 text-neutral-400" /> Pasatiempos (Hobbies)
                     {filterHobbies.length > 0 && (
-                      <span className="text-[10px] bg-neutral-800 text-neutral-300 px-1.5 rounded">
+                      <span className="text-[10px] bg-neutral-800 text-neutral-300 px-1.5 rounded-full font-bold">
                         {filterHobbies.length}
                       </span>
                     )}
@@ -932,7 +1237,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                         <button
                           key={hobby}
                           type="button"
-                          onClick={() => toggleArrayItem(filterHobbies, setFilterHobbies, hobby)}
+                          onClick={() => toggleItem(filterHobbies, setFilterHobbies, hobby)}
                           className={`text-[11px] px-2 py-0.5 rounded-md border transition-all ${
                             selected
                               ? 'bg-neutral-800 border-neutral-600 text-white font-medium'
@@ -948,8 +1253,8 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 )}
               </div>
 
-              {/* 9. Verificados & Top */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5 space-y-2">
+              {/* 10. Verificación & Estado */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-2.5">
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
                   <input
                     type="checkbox"
@@ -969,6 +1274,16 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                   />
                   <span>Sólo posiciones Top VIP destacadas</span>
                 </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                  <input
+                    type="checkbox"
+                    checked={filterOnlineOnly}
+                    onChange={(e) => setFilterOnlineOnly(e.target.checked)}
+                    className="rounded border-neutral-700 bg-neutral-950 text-emerald-400 focus:ring-0"
+                  />
+                  <span>Sólo usuarios actualmente en línea</span>
+                </label>
               </div>
 
             </div>
@@ -977,7 +1292,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
           {/* Main Profiles Content Area */}
           <main className="flex-1 min-w-0">
             {/* Search Input and Status bar */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3.5 mb-4 shadow-sm">
+            <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 mb-4 shadow-sm">
               <div className="relative">
                 <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -995,6 +1310,171 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
+              </div>
+
+              {/* Quick Filter Chips Row */}
+              <div className="mt-3 pt-3 border-t border-neutral-800">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-400" /> Filtros Rápidos Populares:
+                  </span>
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={handleResetFilters}
+                      className="text-[11px] text-rose-400 hover:underline"
+                    >
+                      Limpiar todos ({activeFiltersCount})
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {/* Requested Gender highlights */}
+                  <button
+                    onClick={() => toggleItem(filterGenders, setFilterGenders, 'Pareja Trans y Trans')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterGenders.includes('Pareja Trans y Trans')
+                        ? 'bg-rose-600 border-rose-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>👫 Pareja Trans y Trans</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterGenders, setFilterGenders, 'Pareja H y Trans')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterGenders.includes('Pareja H y Trans')
+                        ? 'bg-rose-600 border-rose-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>👫 Pareja H y Trans</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterGenders, setFilterGenders, 'Pareja H y H')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterGenders.includes('Pareja H y H')
+                        ? 'bg-rose-600 border-rose-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>👬 Pareja H y H</span>
+                  </button>
+
+                  {/* Looking For / Kink highlights */}
+                  <button
+                    onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, 'Soy Escort / Scort')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLookingFor.includes('Soy Escort / Scort')
+                        ? 'bg-amber-500 border-amber-400 text-neutral-950 font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>💎 Soy Scort</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, 'Feminización')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLookingFor.includes('Feminización')
+                        ? 'bg-rose-600 border-rose-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>👠 Feminización</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, 'Fisting')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLookingFor.includes('Fisting')
+                        ? 'bg-rose-600 border-rose-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>✊ Fisting</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, 'Cruising')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLookingFor.includes('Cruising')
+                        ? 'bg-blue-600 border-blue-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>🚗 Cruising</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, 'Gangbang')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLookingFor.includes('Gangbang')
+                        ? 'bg-rose-600 border-rose-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>🔥 Gangbang</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, 'Voyerismo')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLookingFor.includes('Voyerismo')
+                        ? 'bg-purple-600 border-purple-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>👀 Voyerismo</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterSafety, setFilterSafety, 'Solo con condón')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterSafety.includes('Solo con condón')
+                        ? 'bg-emerald-600 border-emerald-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>🛡 Solo con condón</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterLogistics, setFilterLogistics, 'Con lugar propio')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterLogistics.includes('Con lugar propio')
+                        ? 'bg-blue-600 border-blue-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>🏠 Con lugar</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterHeights, setFilterHeights, 'Alta (> 1.80 m)')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterHeights.includes('Alta (> 1.80 m)')
+                        ? 'bg-amber-600 border-amber-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span>📏 &gt; 1.80 m</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleItem(filterEyeColors, setFilterEyeColors, 'Verdes / Claros')}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                      filterEyeColors.includes('Verdes / Claros')
+                        ? 'bg-cyan-600 border-cyan-500 text-white font-bold shadow'
+                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>Ojos Claros</span>
+                  </button>
+                </div>
               </div>
 
               {/* Active Filter Badges/Pills */}
@@ -1016,89 +1496,96 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                     </span>
                   )}
 
-                  {filterRole !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-amber-950/60 border border-amber-800 text-amber-200 px-2 py-0.5 rounded-md">
-                      Rol: {filterRole}
-                      <button onClick={() => setFilterRole('all')} className="hover:text-amber-400"><X className="w-3 h-3" /></button>
+                  {filterGenders.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-rose-950/70 border border-rose-700 text-rose-200 px-2 py-0.5 rounded-md font-medium">
+                      Género: {item}
+                      <button onClick={() => toggleItem(filterGenders, setFilterGenders, item)} className="hover:text-white"><X className="w-3 h-3" /></button>
                     </span>
-                  )}
+                  ))}
 
-                  {filterGender !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-rose-950/60 border border-rose-800 text-rose-200 px-2 py-0.5 rounded-md">
-                      Género: {filterGender}
-                      <button onClick={() => setFilterGender('all')} className="hover:text-rose-400"><X className="w-3 h-3" /></button>
+                  {filterRoles.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-amber-950/70 border border-amber-700 text-amber-200 px-2 py-0.5 rounded-md font-medium">
+                      Rol: {item}
+                      <button onClick={() => toggleItem(filterRoles, setFilterRoles, item)} className="hover:text-white"><X className="w-3 h-3" /></button>
                     </span>
-                  )}
+                  ))}
 
-                  {filterLookingFor !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
-                      Busca: {filterLookingFor}
-                      <button onClick={() => setFilterLookingFor('all')} className="hover:text-rose-400"><X className="w-3 h-3" /></button>
+                  {filterLookingFor.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-rose-950/60 border border-rose-800 text-rose-200 px-2 py-0.5 rounded-md">
+                      Busca: {item}
+                      <button onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, item)} className="hover:text-white"><X className="w-3 h-3" /></button>
                     </span>
-                  )}
+                  ))}
+
+                  {filterSexualPreferences.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-rose-900/50 border border-rose-700 text-rose-200 px-2 py-0.5 rounded-md">
+                      🔥 {item}
+                      <button onClick={() => toggleItem(filterSexualPreferences, setFilterSexualPreferences, item)}><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+
+                  {filterHeights.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
+                      📏 {item}
+                      <button onClick={() => toggleItem(filterHeights, setFilterHeights, item)}><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+
+                  {filterEyeColors.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-cyan-950/60 border border-cyan-800 text-cyan-200 px-2 py-0.5 rounded-md">
+                      👁 {item}
+                      <button onClick={() => toggleItem(filterEyeColors, setFilterEyeColors, item)}><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+
+                  {filterHairColors.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-pink-950/60 border border-pink-800 text-pink-200 px-2 py-0.5 rounded-md">
+                      ✨ Cabello {item}
+                      <button onClick={() => toggleItem(filterHairColors, setFilterHairColors, item)}><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+
+                  {filterBodyTypes.map(item => (
+                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
+                      Cuerpo: {item}
+                      <button onClick={() => toggleItem(filterBodyTypes, setFilterBodyTypes, item)}><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
 
                   {filterLogistics.map(item => (
                     <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-blue-950/60 border border-blue-800 text-blue-200 px-2 py-0.5 rounded-md">
                       📍 {item}
-                      <button onClick={() => toggleArrayItem(filterLogistics, setFilterLogistics, item)}><X className="w-3 h-3" /></button>
+                      <button onClick={() => toggleItem(filterLogistics, setFilterLogistics, item)}><X className="w-3 h-3" /></button>
                     </span>
                   ))}
 
                   {filterSafety.map(item => (
                     <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-emerald-950/60 border border-emerald-800 text-emerald-200 px-2 py-0.5 rounded-md">
                       🛡 {item}
-                      <button onClick={() => toggleArrayItem(filterSafety, setFilterSafety, item)}><X className="w-3 h-3" /></button>
+                      <button onClick={() => toggleItem(filterSafety, setFilterSafety, item)}><X className="w-3 h-3" /></button>
                     </span>
                   ))}
 
-                  {filterSexualPreferences.map(item => (
-                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-rose-950/60 border border-rose-800 text-rose-200 px-2 py-0.5 rounded-md">
-                      🔥 {item}
-                      <button onClick={() => toggleArrayItem(filterSexualPreferences, setFilterSexualPreferences, item)}><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-
-                  {filterBodyType !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
-                      Cuerpo: {filterBodyType}
-                      <button onClick={() => setFilterBodyType('all')}><X className="w-3 h-3" /></button>
+                  {filterVerifiedOnly && (
+                    <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-950/60 border border-emerald-800 text-emerald-200 px-2 py-0.5 rounded-md">
+                      ✓ Verificados
+                      <button onClick={() => setFilterVerifiedOnly(false)}><X className="w-3 h-3" /></button>
                     </span>
                   )}
 
-                  {filterHeight !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
-                      Estatura: {filterHeight}
-                      <button onClick={() => setFilterHeight('all')}><X className="w-3 h-3" /></button>
+                  {filterTopOnly && (
+                    <span className="inline-flex items-center gap-1 text-[11px] bg-amber-950/60 border border-amber-800 text-amber-200 px-2 py-0.5 rounded-md">
+                      ★ Top VIP
+                      <button onClick={() => setFilterTopOnly(false)}><X className="w-3 h-3" /></button>
                     </span>
                   )}
 
-                  {filterHairColor !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
-                      Cabello: {filterHairColor}
-                      <button onClick={() => setFilterHairColor('all')}><X className="w-3 h-3" /></button>
+                  {filterFavoritesOnly && (
+                    <span className="inline-flex items-center gap-1 text-[11px] bg-rose-950/60 border border-rose-800 text-rose-200 px-2 py-0.5 rounded-md">
+                      ❤️ Mis Guardados
+                      <button onClick={() => setFilterFavoritesOnly(false)}><X className="w-3 h-3" /></button>
                     </span>
                   )}
-
-                  {filterEyeColor !== 'all' && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
-                      Ojos: {filterEyeColor}
-                      <button onClick={() => setFilterEyeColor('all')}><X className="w-3 h-3" /></button>
-                    </span>
-                  )}
-
-                  {filterPhysicalFeatures.map(item => (
-                    <span key={item} className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
-                      ✨ {item}
-                      <button onClick={() => toggleArrayItem(filterPhysicalFeatures, setFilterPhysicalFeatures, item)}><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-
-                  <button
-                    onClick={handleResetFilters}
-                    className="text-[11px] text-rose-400 hover:underline ml-1"
-                  >
-                    Limpiar todo
-                  </button>
                 </div>
               )}
             </div>
@@ -1106,7 +1593,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
             {/* Results Count Header */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-neutral-400">
-                Mostrando <strong className="text-neutral-200">{filteredProfiles.length}</strong> de {mockProfiles.length} perfiles disponibles
+                Mostrando <strong className="text-neutral-100 font-bold">{filteredProfiles.length}</strong> de {mockProfiles.length} perfiles disponibles
               </p>
               
               <div className="flex items-center gap-2">
@@ -1122,18 +1609,18 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 ))}
               </div>
             ) : (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-10 text-center space-y-3">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-neutral-800 text-neutral-400 flex items-center justify-center mx-auto">
                   <Filter className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-bold text-neutral-200">No encontramos perfiles con estos filtros exactos</h3>
                 <p className="text-xs text-neutral-400 max-w-md mx-auto">
-                  Prueba reduciendo o desmarcando algunas de las opciones seleccionadas (como prácticas sexuales específicas o rasgos físicos) para ver más resultados.
+                  Prueba reduciendo o desmarcando algunas de las opciones seleccionadas (como prácticas o rasgos específicos) para ver más resultados.
                 </p>
                 <div className="pt-2">
                   <button
                     onClick={handleResetFilters}
-                    className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium py-2 px-4 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors shadow"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Restablecer Filtros</span>
@@ -1147,7 +1634,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
 
       {/* Mobile Filters Slide-over / Modal */}
       {showMobileFilters && (
-        <div className="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm md:hidden">
+        <div className="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm md:hidden animate-fade-in">
           <div className="w-full max-w-md bg-neutral-950 h-full flex flex-col border-r border-neutral-800">
             {/* Modal Header */}
             <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
@@ -1169,9 +1656,9 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
             </div>
 
             {/* Modal Scrollable Body */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
               {/* Location */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
                 <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Ubicación</span>
                 <select
                   value={selectedState}
@@ -1200,55 +1687,168 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 )}
               </div>
 
-              {/* Role & Gender */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2.5">
-                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Rol & Género</span>
-                <div>
-                  <label className="text-[11px] text-neutral-400 block mb-1">Preferencia de Rol</label>
-                  <select
-                    value={filterRole}
-                    onChange={(e) => setFilterRole(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2"
-                  >
-                    <option value="all">Todos los roles</option>
-                    {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                  </select>
+              {/* Gender & Couplets */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2.5">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+                  Género & Modalidad
+                </span>
+                
+                <div className="space-y-1 mb-2">
+                  <span className="text-[10px] uppercase font-bold text-amber-400">★ Parejas Solicitadas</span>
+                  {['Pareja Trans y Trans', 'Pareja H y Trans', 'Pareja H y H'].map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => toggleItem(filterGenders, setFilterGenders, item)}
+                      className={`w-full text-xs p-2 rounded-lg border text-left flex justify-between items-center ${
+                        filterGenders.includes(item)
+                          ? 'bg-rose-950/70 border-rose-500 text-white font-bold'
+                          : 'bg-neutral-950 border-neutral-800 text-neutral-300'
+                      }`}
+                    >
+                      <span>{item}</span>
+                      <span>{filterGenders.includes(item) ? '✓' : ''}</span>
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <label className="text-[11px] text-neutral-400 block mb-1">Género / Modalidad</label>
-                  <select
-                    value={filterGender}
-                    onChange={(e) => setFilterGender(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2"
-                  >
-                    <option value="all">Todos los géneros / parejas</option>
-                    {GENDER_OPTIONS.map((g) => <option key={g} value={g}>{g}</option>)}
-                  </select>
+
+                <div className="flex flex-wrap gap-1">
+                  {GENDER_OPTIONS.filter(g => !['Pareja Trans y Trans', 'Pareja H y Trans', 'Pareja H y H'].includes(g)).map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => toggleItem(filterGenders, setFilterGenders, g)}
+                      className={`text-[11px] px-2 py-1 rounded border ${
+                        filterGenders.includes(g)
+                          ? 'bg-rose-900/60 border-rose-500 text-white font-medium'
+                          : 'bg-neutral-950 border-neutral-800 text-neutral-400'
+                      }`}
+                    >
+                      {filterGenders.includes(g) && '✓ '}
+                      {g}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Qué Busco */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2">
-                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">¿Qué Busco?</span>
-                <select
-                  value={filterLookingFor}
-                  onChange={(e) => setFilterLookingFor(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-2"
-                >
-                  <option value="all">Cualquier intención</option>
-                  {LOOKING_FOR_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
+              {/* Roles */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Preferencia de Rol</span>
+                <div className="flex flex-wrap gap-1">
+                  {ROLE_OPTIONS.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => toggleItem(filterRoles, setFilterRoles, r)}
+                      className={`text-[11px] px-2 py-1 rounded border ${
+                        filterRoles.includes(r)
+                          ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-bold'
+                          : 'bg-neutral-950 border-neutral-800 text-neutral-300'
+                      }`}
+                    >
+                      {filterRoles.includes(r) && '✓ '}
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Logistics */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2">
-                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Logística de Encuentro</span>
-                <div className="flex flex-wrap gap-1.5">
+              {/* What I'm Looking For */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+                  ¿Qué Busco? / Servicios & Prácticas
+                </span>
+                <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto">
+                  {LOOKING_FOR_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => toggleItem(filterLookingFor, setFilterLookingFor, opt)}
+                      className={`text-[11px] px-2 py-1 rounded border ${
+                        filterLookingFor.includes(opt)
+                          ? 'bg-rose-950/70 border-rose-500 text-white font-medium'
+                          : 'bg-neutral-950 border-neutral-800 text-neutral-300'
+                      }`}
+                    >
+                      {filterLookingFor.includes(opt) && '✓ '}
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Physical attributes */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2.5">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+                  Rasgos Físicos (Estatura, Ojos, Cabello)
+                </span>
+                
+                <div>
+                  <span className="text-[11px] text-neutral-400 block mb-1">Estatura</span>
+                  <div className="grid grid-cols-2 gap-1">
+                    {HEIGHT_OPTIONS.map((h) => (
+                      <button
+                        key={h}
+                        onClick={() => toggleItem(filterHeights, setFilterHeights, h)}
+                        className={`text-[10px] p-1.5 rounded border text-left truncate ${
+                          filterHeights.includes(h)
+                            ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-medium'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-400'
+                        }`}
+                      >
+                        {filterHeights.includes(h) && '✓ '}
+                        {h}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[11px] text-neutral-400 block mb-1">Color de Ojos</span>
+                  <div className="flex flex-wrap gap-1">
+                    {EYE_COLOR_OPTIONS.map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={() => toggleItem(filterEyeColors, setFilterEyeColors, item.label)}
+                        className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 ${
+                          filterEyeColors.includes(item.label)
+                            ? 'bg-cyan-950/70 border-cyan-500 text-cyan-200 font-medium'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-300'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.hex }} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[11px] text-neutral-400 block mb-1">Color de Cabello</span>
+                  <div className="flex flex-wrap gap-1">
+                    {HAIR_COLOR_OPTIONS.map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={() => toggleItem(filterHairColors, setFilterHairColors, item.label)}
+                        className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 ${
+                          filterHairColors.includes(item.label)
+                            ? 'bg-pink-950/70 border-pink-500 text-pink-200 font-medium'
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-300'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.hex }} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Logistics & Safety */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Logística & Salud</span>
+                <div className="flex flex-wrap gap-1">
                   {LOGISTICS_OPTIONS.map((item) => (
                     <button
                       key={item}
-                      onClick={() => toggleArrayItem(filterLogistics, setFilterLogistics, item)}
-                      className={`text-xs px-2.5 py-1 rounded border ${
+                      onClick={() => toggleItem(filterLogistics, setFilterLogistics, item)}
+                      className={`text-[10px] px-2 py-1 rounded border ${
                         filterLogistics.includes(item)
                           ? 'bg-blue-900/60 border-blue-500 text-white'
                           : 'bg-neutral-950 border-neutral-800 text-neutral-400'
@@ -1257,18 +1857,11 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                       {item}
                     </button>
                   ))}
-                </div>
-              </div>
-
-              {/* Safety */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2">
-                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Salud & Prevención</span>
-                <div className="flex flex-wrap gap-1.5">
                   {SAFETY_PRACTICES_OPTIONS.map((item) => (
                     <button
                       key={item}
-                      onClick={() => toggleArrayItem(filterSafety, setFilterSafety, item)}
-                      className={`text-xs px-2.5 py-1 rounded border ${
+                      onClick={() => toggleItem(filterSafety, setFilterSafety, item)}
+                      className={`text-[10px] px-2 py-1 rounded border ${
                         filterSafety.includes(item)
                           ? 'bg-emerald-900/60 border-emerald-500 text-white'
                           : 'bg-neutral-950 border-neutral-800 text-neutral-400'
@@ -1280,77 +1873,19 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 </div>
               </div>
 
-              {/* Sexual practices */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2">
-                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Gustos & Prácticas</span>
-                <div className="flex flex-wrap gap-1 max-h-48 overflow-y-auto">
-                  {SEXUAL_PRACTICES_OPTIONS.map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => toggleArrayItem(filterSexualPreferences, setFilterSexualPreferences, item)}
-                      className={`text-[11px] px-2 py-1 rounded border ${
-                        filterSexualPreferences.includes(item)
-                          ? 'bg-rose-900/60 border-rose-500 text-white font-medium'
-                          : 'bg-neutral-950 border-neutral-800 text-neutral-400'
-                      }`}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Physical traits */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 space-y-2">
-                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Rasgos Físicos</span>
-                <div className="space-y-2">
-                  <select
-                    value={filterBodyType}
-                    onChange={(e) => setFilterBodyType(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5"
-                  >
-                    <option value="all">Complexión (todas)</option>
-                    {BODY_TYPE_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
-                  </select>
-                  <select
-                    value={filterHeight}
-                    onChange={(e) => setFilterHeight(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5"
-                  >
-                    <option value="all">Estatura (todas)</option>
-                    {HEIGHT_OPTIONS.map((h) => <option key={h} value={h}>{h}</option>)}
-                  </select>
-                  <select
-                    value={filterHairColor}
-                    onChange={(e) => setFilterHairColor(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5"
-                  >
-                    <option value="all">Color de cabello (todos)</option>
-                    {HAIR_COLOR_OPTIONS.map((hc) => <option key={hc} value={hc}>{hc}</option>)}
-                  </select>
-                  <select
-                    value={filterEyeColor}
-                    onChange={(e) => setFilterEyeColor(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md p-1.5"
-                  >
-                    <option value="all">Color de ojos (todos)</option>
-                    {EYE_COLOR_OPTIONS.map((ec) => <option key={ec} value={ec}>{ec}</option>)}
-                  </select>
-                </div>
-              </div>
             </div>
 
             {/* Modal Footer */}
             <div className="p-3 border-t border-neutral-800 flex items-center gap-2 bg-neutral-900">
               <button
                 onClick={handleResetFilters}
-                className="w-1/3 py-2 text-xs text-neutral-400 bg-neutral-800 rounded-lg hover:text-white"
+                className="w-1/3 py-2.5 text-xs text-neutral-400 bg-neutral-800 rounded-lg hover:text-white"
               >
                 Limpiar
               </button>
               <button
                 onClick={() => setShowMobileFilters(false)}
-                className="w-2/3 py-2 text-xs font-bold text-white bg-rose-600 rounded-lg hover:bg-rose-500 shadow"
+                className="w-2/3 py-2.5 text-xs font-bold text-white bg-rose-600 rounded-lg hover:bg-rose-500 shadow"
               >
                 Ver {filteredProfiles.length} Resultados
               </button>

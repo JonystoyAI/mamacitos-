@@ -3,6 +3,7 @@ import { Eye, EyeOff, Shield, Bell, Lock, Sparkles, Filter, RefreshCw, UserCheck
 import { ProfileView, ProfileViewPrivacySettings } from '../../types';
 import VerifiedBadge from '../common/VerifiedBadge';
 import EngagementAnalyticsChart from './EngagementAnalyticsChart';
+import { useDiscretionMode } from '../../src/utils/discretionMode';
 
 interface ProfileViewsTrackerProps {
   isPremium?: boolean;
@@ -90,6 +91,7 @@ export const ProfileViewsTracker: React.FC<ProfileViewsTrackerProps> = ({
   userIdCode = 'MMC-9821',
   userName = 'Valentina'
 }) => {
+  const { shouldHideActivity, isDiscretionMode } = useDiscretionMode();
   const [isPremium, setIsPremium] = useState<boolean>(initialIsPremium);
   const [views, setViews] = useState<ProfileView[]>(INITIAL_MOCK_VIEWS);
   const [filter, setFilter] = useState<'all' | 'verified' | 'incognito' | 'direct'>('all');
@@ -209,6 +211,13 @@ export const ProfileViewsTracker: React.FC<ProfileViewsTrackerProps> = ({
           <p className="text-xs sm:text-sm text-gray-300 mt-1 max-w-2xl">
             Rastrea en tiempo real qué clientes y miembros han visitado tu Landing Page privada o portafolio, con filtros de confidencialidad y navegación fantasma.
           </p>
+
+          {shouldHideActivity && (
+            <div className="mt-3 bg-emerald-950/60 border border-emerald-500/50 p-2.5 rounded-xl flex items-center gap-2 text-xs text-emerald-300">
+              <EyeOff className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span><strong>Modo Discreción Activo:</strong> Tu navegación actual está en modo fantasma; tus visitas no quedarán registradas en perfiles ajenos.</span>
+            </div>
+          )}
         </div>
 
         {/* Live Simulation Button & Premium Toggle Test */}

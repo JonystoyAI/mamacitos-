@@ -15,6 +15,7 @@ import BlogPage from './components/pages/BlogPage';
 import EditorialProfileView from './components/profile/EditorialProfileView';
 import AgeVerificationModal from './components/AgeVerificationModal';
 import PanicButton from './components/common/PanicButton';
+import DiscretionModeBanner from './components/common/DiscretionModeBanner';
 import { Page, Profile } from './types';
 import EntryGate from './components/EntryGate';
 import LoginPage from './components/auth/LoginPage';
@@ -114,6 +115,9 @@ const App: React.FC = () => {
 
       {/* Floating Emergency Panic Button */}
       <PanicButton />
+
+      {/* Floating Discretion Mode Privacy Layer Notification */}
+      <DiscretionModeBanner />
 
       {/* Header bar (only hidden in the immersive editorial profile view if requested, or shown with consistent navigation) */}
       {currentPage !== 'view_profile' && (

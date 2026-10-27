@@ -3,7 +3,8 @@ import { Profile } from '../../types';
 import VerifiedBadge from './VerifiedBadge';
 import DirectMessagingModal from './DirectMessagingModal';
 import { useFavorites } from '../../src/utils/favorites';
-import { Heart, Sparkles, MapPin, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { useDiscretionMode } from '../../src/utils/discretionMode';
+import { Heart, Sparkles, MapPin, ShieldCheck, Eye, EyeOff, Shield } from 'lucide-react';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -13,11 +14,20 @@ interface ProfileCardProps {
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false, onViewProfile }) => {
   const { isFavorited, toggleFavorite } = useFavorites();
+  const { shouldBlurMedia, shouldHideActivity, isDiscretionMode } = useDiscretionMode();
   const favorited = isFavorited(profile.id);
 
   const [showUncensored, setShowUncensored] = useState(isUnblurred);
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
+  // In discretion mode, media is strongly blurred by default unless user explicitly reveals it
+  const isCurrentlyBlurred = shouldBlurMedia ? !showUncensored : !showUncensored;
+  const blurClass = isCurrentlyBlurred 
+    ? shouldBlurMedia 
+      ? 'filter blur-md scale-105 brightness-80' 
+      : 'filter blur-[3px] brightness-90'
+    : 'blur-none scale-100 brightness-100';
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -34,13 +44,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
 
   return (
     <div className={`bg-neutral-900 rounded-xl overflow-hidden shadow-md group transform transition-all duration-200 hover:-translate-y-1 border ${profile.topPosition ? 'border-amber-400/70 shadow-amber-500/10' : 'border-neutral-800 hover:border-neutral-700'}`}>
-      <div className="relative cursor-pointer" onClick={handleCardClick}>
+      <div className="relative cursor-pointer overflow-hidden" onClick={handleCardClick}>
         <img
-          className={`w-full h-64 object-cover transition-all duration-300 ${!showUncensored ? 'filter blur-[3px] brightness-90' : 'blur-none brightness-100'}`}
+          className={`w-full h-64 object-cover transition-all duration-300 ${blurClass}`}
           src={profile.image}
           alt={profile.name}
           loading="lazy"
         />
+
+        {/* Discretion Mode Overlay indicator when strongly blurred */}
+        {shouldBlurMedia && isCurrentlyBlurred && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center pointer-events-none z-10 bg-black/25">
+            <span className="text-[10px] font-bold text-amber-300 bg-neutral-950/80 px-2 py-0.5 rounded border border-amber-400/30 flex items-center gap-1 shadow">
+              <EyeOff className="w-3 h-3 text-amber-400" />
+              <span>Modo Discreción</span>
+            </span>
+          </div>
+        )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-transparent"></div>
         
@@ -104,11 +124,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
                 <h3 className="text-base font-bold text-white tracking-tight">{profile.name}, {profile.age}</h3>
                 <span 
                   className={`h-2.5 w-2.5 rounded-full ${
-                    profile.onlineStatus === 'online' ? 'bg-emerald-400 ring-2 ring-emerald-950' : 
-                    profile.onlineStatus === 'incognito' ? 'bg-purple-400 ring-2 ring-purple-950' : 
-                    'bg-neutral-500'
+                    shouldHideActivity 
+                      ? 'bg-purple-400 ring-2 ring-purple-950' 
+                      : profile.onlineStatus === 'online' 
+                      ? 'bg-emerald-400 ring-2 ring-emerald-950' 
+                      : profile.onlineStatus === 'incognito' 
+                      ? 'bg-purple-400 ring-2 ring-purple-950' 
+                      : 'bg-neutral-500'
                   }`} 
-                  title={`Estado: ${profile.onlineStatus || 'offline'}`}
+                  title={shouldHideActivity ? 'Presencia oculta por Modo Discreción' : `Estado: ${profile.onlineStatus || 'offline'}`}
                 />
               </div>
               <p className="text-xs text-neutral-300 flex items-center gap-1 mt-0.5">
@@ -245,6 +269,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
           recipientName={profile.name}
           recipientAvatar={profile.image}
           recipientCode={profile.userIdCode}
+          recipientRole={profile.role}
+          recipientLocation={profile.location}
+          recipientIsVerified={profile.isVerified}
         />
       </div>
     </div>

@@ -10,7 +10,9 @@ import { useFavorites } from '../../src/utils/favorites';
 import ProviderPhotoGallery, { GalleryImage } from '../profile/ProviderPhotoGallery';
 import BloggerManager from '../profile/BloggerManager';
 import EditorialProfileView from '../profile/EditorialProfileView';
-import { PenTool, ExternalLink, Sparkles } from 'lucide-react';
+import DiscretionSettingsSection from '../profile/DiscretionSettingsSection';
+import { useDiscretionMode } from '../../src/utils/discretionMode';
+import { PenTool, ExternalLink, Sparkles, EyeOff } from 'lucide-react';
 import { Page } from '../../types';
 
 type Template = 'classic' | 'modern' | 'vibrant';
@@ -41,9 +43,10 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
         ],
     };
 
-    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'blogger' | 'portfolio_view'>('landing_customizer');
+    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'blogger' | 'discretion_settings' | 'portfolio_view'>('landing_customizer');
     const [showEditorialPreview, setShowEditorialPreview] = useState(false);
     const { count: favoritesCount } = useFavorites();
+    const { isDiscretionMode } = useDiscretionMode();
     const [isVerified, setIsVerified] = useState<boolean>(true); // Verification state toggle for testing
     const [template, setTemplate] = useState<Template>('classic');
     const [visibility, setVisibility] = useState<Visibility>('public');
@@ -171,6 +174,23 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
                     <span>Modo Blogger VIP</span>
                   </button>
                   <button
+                    onClick={() => setActiveTab('discretion_settings')}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      activeTab === 'discretion_settings'
+                        ? 'bg-amber-400 text-neutral-950 shadow-lg'
+                        : isDiscretionMode
+                        ? 'text-amber-300 bg-amber-500/10 border border-amber-500/30'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <span>🕶️</span>
+                    <span>Modo Discreción</span>
+                    {isDiscretionMode && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-950" />
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => setActiveTab('portfolio_view')}
                     className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       activeTab === 'portfolio_view'
@@ -234,7 +254,7 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
                   />
                 ) : activeTab === 'favorites' ? (
                   /* TAB 4: MY FAVORITES & SAVED PROFILES SECTION */
-                  <MyFavoritesSection />
+                  <MyFavoritesSection onNavigateToExplore={() => onNavigate?.('explore')} />
                 ) : activeTab === 'blogger' ? (
                   /* TAB 5: BLOGGER VIP & ARTICLE MANAGEMENT */
                   <BloggerManager
@@ -243,6 +263,9 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
                     userName={provider.name}
                     onNavigateToBlog={() => onNavigate?.('blog')}
                   />
+                ) : activeTab === 'discretion_settings' ? (
+                  /* TAB 6: DISCRETION MODE & PRIVACY SETTINGS */
+                  <DiscretionSettingsSection />
                 ) : (
                   /* TAB 5: PORTFOLIO VIEW & STYLES */
                   <div className="space-y-8">

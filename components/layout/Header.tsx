@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Page } from '../../types';
 import DirectMessagingModal from '../common/DirectMessagingModal';
 import SiteIcon from '../common/SiteIcon';
+import { useFavorites } from '../../src/utils/favorites';
+import { useDiscretionMode } from '../../src/utils/discretionMode';
+import { Heart, Eye, EyeOff } from 'lucide-react';
 
 interface HeaderProps {
   onNavigate: (page: Page) => void;
@@ -39,6 +42,8 @@ const NavLink: React.FC<{
 const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDirectMessagingOpen, setIsDirectMessagingOpen] = useState(false);
+  const { count: favoritesCount } = useFavorites();
+  const { isDiscretionMode, toggleDiscretionMode } = useDiscretionMode();
 
   const navLinks = [
     { page: 'home' as Page, label: 'Inicio' },
@@ -48,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterCli
     { page: 'discreet_payments' as Page, label: 'Pagos Discretos' },
     { page: 'verification' as Page, label: 'Verificación & 2FA' },
     { page: 'premium' as Page, label: '★ Premium VIP' },
-    { page: 'profile' as Page, label: 'Mi Perfil' },
+    { page: 'profile' as Page, label: 'Mi Perfil', badge: favoritesCount > 0 ? `${favoritesCount} ❤️` : undefined },
   ];
 
   return (
@@ -84,11 +89,46 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterCli
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-2.5">
+            {favoritesCount > 0 && (
+              <button
+                onClick={() => onNavigate('profile')}
+                className="bg-neutral-900 hover:bg-neutral-800 text-rose-300 border border-rose-500/40 text-xs font-bold py-2 px-3 rounded-full transition-all flex items-center gap-1.5 shadow"
+                title="Ver perfiles guardados en Mi Perfil"
+              >
+                <Heart className="w-3.5 h-3.5 fill-current text-rose-500" />
+                <span>{favoritesCount}</span>
+              </button>
+            )}
+
+            {/* Instant Discretion Mode Quick Switch */}
+            <button
+              onClick={toggleDiscretionMode}
+              className={`text-xs font-bold py-2 px-3 rounded-full transition-all flex items-center gap-1.5 border shadow ${
+                isDiscretionMode
+                  ? 'bg-emerald-950 text-emerald-300 border-emerald-500/70 hover:bg-emerald-900/60 ring-1 ring-emerald-500/40'
+                  : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700 hover:text-white'
+              }`}
+              title={isDiscretionMode ? 'Modo Discreción Activo (Haz clic para desactivar)' : 'Activar Modo Discreción (Capa de Privacidad Instantánea)'}
+            >
+              {isDiscretionMode ? (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden xl:inline">Discreción:</span>
+                  <span className="text-emerald-400">ON</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-neutral-400" />
+                  <span className="hidden xl:inline">Discreción</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={() => setIsDirectMessagingOpen(true)}
               className="bg-neutral-900 hover:bg-neutral-800 text-amber-400 border border-amber-400/30 text-xs font-bold py-2 px-3.5 rounded-full transition-all flex items-center gap-1.5 shadow"
             >
-              <span>💬 Mensajes (Voz)</span>
+              <span>💬 Mensajes E2EE</span>
             </button>
             
             <button 
@@ -131,6 +171,23 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, current_page, onRegisterCli
           ))}
 
           <div className="pt-3 border-t border-neutral-800 flex flex-col gap-2">
+            <button
+              onClick={() => {
+                toggleDiscretionMode();
+              }}
+              className={`w-full py-2.5 px-3 rounded-lg text-xs font-bold flex items-center justify-between border transition-all ${
+                isDiscretionMode
+                  ? 'bg-emerald-950 text-emerald-300 border-emerald-500'
+                  : 'bg-neutral-900 text-neutral-300 border-neutral-700'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {isDiscretionMode ? <EyeOff className="w-4 h-4 text-emerald-400" /> : <Eye className="w-4 h-4 text-neutral-400" />}
+                <span>Modo Discreción (Privacidad)</span>
+              </div>
+              <span className="font-mono text-[10px]">{isDiscretionMode ? 'ACTIVO' : 'APAGADO'}</span>
+            </button>
+
             <button
               onClick={() => {
                 setIsMenuOpen(false);
