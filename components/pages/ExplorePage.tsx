@@ -501,6 +501,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
   // Active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
+    if (searchTerm.trim() !== '') count++;
     if (selectedState !== 'all') count++;
     if (selectedMunicipality !== 'all') count++;
     if (filterVerifiedOnly) count++;
@@ -522,7 +523,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     count += filterHobbies.length;
     return count;
   }, [
-    selectedState, selectedMunicipality, filterVerifiedOnly, filterTopOnly, filterOnlineOnly,
+    searchTerm, selectedState, selectedMunicipality, filterVerifiedOnly, filterTopOnly, filterOnlineOnly,
     filterFavoritesOnly, filterDiscretion,
     filterRoles, filterGenders, filterLookingFor, filterSexualPreferences,
     filterLogistics, filterSafety, filterHeights, filterEyeColors, filterHairColors,
@@ -532,17 +533,29 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
   // Filtering engine with comprehensive matching
   const filteredProfiles = useMemo(() => {
     return mockProfiles.filter(profile => {
-      // Search term
+      // Search term: filter by name, location, municipality, state, bio, role, or practices
       if (searchTerm.trim() !== '') {
-        const query = searchTerm.toLowerCase();
+        const query = searchTerm.toLowerCase().trim();
         const matchesName = profile.name.toLowerCase().includes(query);
-        const matchesBio = profile.bio.toLowerCase().includes(query);
         const matchesLoc = (profile.location || '').toLowerCase().includes(query);
+        const matchesState = (profile.state || '').toLowerCase().includes(query);
+        const matchesMunicipality = (profile.municipality || '').toLowerCase().includes(query);
+        const matchesBio = (profile.bio || '').toLowerCase().includes(query);
         const matchesRole = (profile.role || '').toLowerCase().includes(query);
         const matchesGender = (profile.gender || '').toLowerCase().includes(query);
         const matchesLookingFor = profile.lookingFor?.some(item => item.toLowerCase().includes(query));
         const matchesPractices = profile.sexualPreferences?.some(item => item.toLowerCase().includes(query));
-        if (!matchesName && !matchesBio && !matchesLoc && !matchesRole && !matchesGender && !matchesLookingFor && !matchesPractices) {
+        if (
+          !matchesName &&
+          !matchesLoc &&
+          !matchesState &&
+          !matchesMunicipality &&
+          !matchesBio &&
+          !matchesRole &&
+          !matchesGender &&
+          !matchesLookingFor &&
+          !matchesPractices
+        ) {
           return false;
         }
       }
@@ -740,6 +753,66 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 <span className="hidden sm:inline">Restablecer</span>
               </button>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Dedicated Search Bar Section: Filter by Name or Location */}
+      <div className="bg-neutral-900/60 border-b border-neutral-800/80 px-4 py-3.5 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+          {/* Search Input Container */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+              <Search className="w-4 h-4 text-rose-500" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por nombre o ubicación (ej. Grace, Camila, CDMX, Querétaro, Guadalajara, Polanco...)"
+              className="w-full bg-neutral-950/90 border border-neutral-800 text-neutral-100 placeholder-neutral-500 text-xs sm:text-sm rounded-xl pl-10 pr-24 py-2.5 focus:outline-none focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/30 transition-all shadow-inner"
+            />
+            <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5">
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                  title="Limpiar búsqueda"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <span className="text-[11px] font-mono text-neutral-400 px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 hidden sm:inline-block">
+                {filteredProfiles.length} {filteredProfiles.length === 1 ? 'perfil' : 'perfiles'}
+              </span>
+            </div>
+          </div>
+
+          {/* Location Quick Shortcuts */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none text-xs">
+            <span className="text-[11px] text-neutral-400 shrink-0 flex items-center gap-1 font-medium">
+              <MapPin className="w-3 h-3 text-rose-400" /> Ubicaciones:
+            </span>
+            {['CDMX', 'Guadalajara', 'Monterrey', 'Querétaro', 'Puebla', 'Cancún'].map((loc) => {
+              const isActive = searchTerm.toLowerCase() === loc.toLowerCase();
+              return (
+                <button
+                  key={loc}
+                  type="button"
+                  onClick={() => setSearchTerm(isActive ? '' : loc)}
+                  className={`px-2.5 py-1.5 rounded-lg border text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
+                    isActive
+                      ? 'bg-rose-950/80 border-rose-500 text-rose-200'
+                      : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:text-white'
+                  }`}
+                  title={`Filtrar por ${loc}`}
+                >
+                  <span>{loc}</span>
+                  {isActive && <X className="w-2.5 h-2.5 ml-0.5" />}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1406,13 +1479,13 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
             {/* Search Input and Status bar */}
             <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 mb-4 shadow-sm">
               <div className="relative">
-                <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-rose-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Buscar por nombre, palabra clave, fetiche, gustos o municipio..."
+                  placeholder="Buscar perfiles por nombre o ubicación (ej. Grace, Camila, CDMX, Juriquilla, Monterrey...)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 text-xs sm:text-sm rounded-lg pl-9 pr-8 py-2.5 focus:border-neutral-600 focus:outline-none transition-colors"
+                  className="w-full bg-neutral-950 border border-neutral-800 text-neutral-100 placeholder-neutral-500 text-xs sm:text-sm rounded-lg pl-9 pr-8 py-2.5 focus:border-rose-500/60 focus:outline-none transition-colors"
                 />
                 {searchTerm && (
                   <button
@@ -1594,6 +1667,16 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 <div className="mt-3 pt-3 border-t border-neutral-800 flex flex-wrap items-center gap-1.5">
                   <span className="text-[11px] text-neutral-500 mr-1">Filtros aplicados:</span>
 
+                  {searchTerm.trim() !== '' && (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] bg-rose-950/80 border border-rose-500 text-rose-200 px-2.5 py-0.5 rounded-md font-medium shadow-xs">
+                      <Search className="w-3 h-3 text-rose-400" />
+                      <span>&ldquo;{searchTerm}&rdquo;</span>
+                      <button onClick={() => setSearchTerm('')} className="hover:text-white" title="Quitar búsqueda">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
                   {selectedState !== 'all' && (
                     <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-800 border border-neutral-700 text-neutral-200 px-2 py-0.5 rounded-md">
                       📍 {selectedState}
@@ -1739,13 +1822,28 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
             ) : (
               <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-10 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-neutral-800 text-neutral-400 flex items-center justify-center mx-auto">
-                  <Filter className="w-6 h-6" />
+                  {searchTerm ? <Search className="w-6 h-6 text-rose-400" /> : <Filter className="w-6 h-6" />}
                 </div>
-                <h3 className="text-base font-bold text-neutral-200">No encontramos perfiles con estos filtros exactos</h3>
+                <h3 className="text-base font-bold text-neutral-200">
+                  {searchTerm
+                    ? `No se encontraron perfiles para "${searchTerm}"`
+                    : 'No encontramos perfiles con estos filtros exactos'}
+                </h3>
                 <p className="text-xs text-neutral-400 max-w-md mx-auto">
-                  Prueba reduciendo o desmarcando algunas de las opciones seleccionadas (como prácticas o rasgos específicos) para ver más resultados.
+                  {searchTerm
+                    ? 'Verifica el nombre o la ubicación (ej. busca por estado como Querétaro, CDMX, Jalisco o nombre de pila) o prueba con un término más general.'
+                    : 'Prueba reduciendo o desmarcando algunas de las opciones seleccionadas (como prácticas o rasgos específicos) para ver más resultados.'}
                 </p>
-                <div className="pt-2">
+                <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="inline-flex items-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-rose-300 border border-neutral-700 text-xs font-semibold py-2 px-3.5 rounded-lg transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Limpiar búsqueda</span>
+                    </button>
+                  )}
                   <button
                     onClick={handleResetFilters}
                     className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors shadow"
@@ -1785,6 +1883,31 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
 
             {/* Modal Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              {/* Search Bar in Mobile Modal */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Search className="w-3.5 h-3.5 text-rose-400" /> Búsqueda por Nombre o Ubicación
+                </span>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Ej. Grace, Camila, CDMX, Querétaro..."
+                    className="w-full bg-neutral-950 border border-neutral-700 text-neutral-200 text-xs rounded-md pl-3 pr-8 py-2 focus:border-rose-500 focus:outline-none"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                      title="Limpiar búsqueda"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Discretion Filter */}
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
                 <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
