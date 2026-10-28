@@ -11,8 +11,10 @@ import ProviderPhotoGallery, { GalleryImage } from '../profile/ProviderPhotoGall
 import BloggerManager from '../profile/BloggerManager';
 import EditorialProfileView from '../profile/EditorialProfileView';
 import DiscretionSettingsSection from '../profile/DiscretionSettingsSection';
+import RecentlyViewedSection from '../profile/RecentlyViewedSection';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
-import { PenTool, ExternalLink, Sparkles, EyeOff } from 'lucide-react';
+import { useRecentlyViewed } from '../../src/utils/recentlyViewed';
+import { PenTool, ExternalLink, Sparkles, EyeOff, Clock } from 'lucide-react';
 import { Page } from '../../types';
 
 type Template = 'classic' | 'modern' | 'vibrant';
@@ -43,9 +45,10 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
         ],
     };
 
-    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'blogger' | 'discretion_settings' | 'portfolio_view'>('landing_customizer');
+    const [activeTab, setActiveTab] = useState<'landing_customizer' | 'profile_views' | 'reviews' | 'favorites' | 'recently_viewed' | 'blogger' | 'discretion_settings' | 'portfolio_view'>('landing_customizer');
     const [showEditorialPreview, setShowEditorialPreview] = useState(false);
     const { count: favoritesCount } = useFavorites();
+    const { count: recentCount } = useRecentlyViewed();
     const { isDiscretionMode } = useDiscretionMode();
     const [isVerified, setIsVerified] = useState<boolean>(true); // Verification state toggle for testing
     const [template, setTemplate] = useState<Template>('classic');
@@ -163,6 +166,23 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
                   </button>
 
                   <button
+                    onClick={() => setActiveTab('recently_viewed')}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 relative ${
+                      activeTab === 'recently_viewed'
+                        ? 'bg-amber-400 text-neutral-950 shadow-lg'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    <span>🕒</span>
+                    <span>Vistos Recientes</span>
+                    {recentCount > 0 && (
+                      <span className="bg-neutral-800 text-amber-400 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full border border-neutral-700">
+                        {recentCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => setActiveTab('blogger')}
                     className={`flex-1 py-3 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                       activeTab === 'blogger'
@@ -255,6 +275,12 @@ const ProfilePage: React.FC<{ onNavigate?: (page: Page) => void }> = ({ onNaviga
                 ) : activeTab === 'favorites' ? (
                   /* TAB 4: MY FAVORITES & SAVED PROFILES SECTION */
                   <MyFavoritesSection onNavigateToExplore={() => onNavigate?.('explore')} />
+                ) : activeTab === 'recently_viewed' ? (
+                  /* TAB 5: RECENTLY VIEWED (LAST 10 PROFILES) */
+                  <RecentlyViewedSection
+                    onNavigateToExplore={() => onNavigate?.('explore')}
+                    onViewProfile={(_prof) => onNavigate?.('explore')}
+                  />
                 ) : activeTab === 'blogger' ? (
                   /* TAB 5: BLOGGER VIP & ARTICLE MANAGEMENT */
                   <BloggerManager

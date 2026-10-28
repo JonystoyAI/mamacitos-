@@ -83,6 +83,7 @@ export interface Profile {
   topPosition?: boolean;
   landingSlug?: string;
   isPremium?: boolean;
+  isHighlyDiscreet?: boolean; // Profile with maximum privacy guarantee & discretion badge
   
   // Advanced filters & taxonomy
   role?: string; // Activo, Pasivo, Versátil, etc.

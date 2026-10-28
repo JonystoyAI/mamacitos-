@@ -21,21 +21,21 @@ import EntryGate from './components/EntryGate';
 import LoginPage from './components/auth/LoginPage';
 
 const App: React.FC = () => {
-  const [userInteracted, setUserInteracted] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
-  const [showAgeGate, setShowAgeGate] = useState(true);
+  // State for onboarding/preview: default userInteracted to true and splash to false for immediate preview
+  const [userInteracted, setUserInteracted] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
+  const [showAgeGate, setShowAgeGate] = useState(() => {
+    try {
+      return localStorage.getItem('mamacitos_age_verified') === 'declined';
+    } catch {
+      return false;
+    }
+  });
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [isLoginOpen, setLoginOpen] = useState(false);
 
-  useEffect(() => {
-    if (userInteracted) {
-      const splashTimer = setTimeout(() => {
-        setShowSplash(false);
-      }, 2000); // Splash screen for 2 seconds
-      return () => clearTimeout(splashTimer);
-    }
-  }, [userInteracted]);
+  // Scroll to top smoothly when switching pages
 
   // Scroll to top smoothly when switching pages
   useEffect(() => {
@@ -91,24 +91,22 @@ const App: React.FC = () => {
     }
   };
 
-  if (!userInteracted) {
-    return <EntryGate onEnter={() => setUserInteracted(true)} />;
-  }
-
-  if (showSplash) {
-    return <SplashScreen />;
-  }
-
   return (
     <div className="bg-brand-purple-dark min-h-screen text-white font-body relative">
       {/* Mandatory Age Verification Modal (+18) */}
       {showAgeGate && (
         <AgeVerificationModal
-          onConfirm={() => setShowAgeGate(false)}
+          onConfirm={() => {
+            setShowAgeGate(false);
+            try {
+              localStorage.setItem('mamacitos_age_verified', 'true');
+            } catch {}
+          }}
           onDecline={() => {
-            alert('Debes ser mayor de 18 años para acceder a Mamacitos.');
-            setUserInteracted(false);
-            setShowSplash(true);
+            setShowAgeGate(false);
+            try {
+              localStorage.setItem('mamacitos_age_verified', 'declined');
+            } catch {}
           }}
         />
       )}

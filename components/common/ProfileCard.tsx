@@ -4,6 +4,7 @@ import VerifiedBadge from './VerifiedBadge';
 import DirectMessagingModal from './DirectMessagingModal';
 import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
+import { recordProfileInteraction } from '../../src/utils/recentlyViewed';
 import { Heart, Sparkles, MapPin, ShieldCheck, Eye, EyeOff, Shield } from 'lucide-react';
 
 interface ProfileCardProps {
@@ -32,11 +33,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(profile);
+    recordProfileInteraction(profile, 'favorited');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
   };
 
   const handleCardClick = () => {
+    recordProfileInteraction(profile, 'viewed');
     if (onViewProfile) {
       onViewProfile(profile);
     }
@@ -107,6 +110,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
               size="sm"
               variant={profile.topPosition ? 'gold' : 'official'}
             />
+          )}
+
+          {profile.isHighlyDiscreet && (
+            <span 
+              className="bg-emerald-950/90 text-emerald-300 border border-emerald-500/60 text-[9px] font-extrabold px-2 py-0.5 rounded-md shadow flex items-center gap-1 backdrop-blur-xs"
+              title="Perfil verificado con protocolo de Alta Discreción (Máxima privacidad y confidencialidad)"
+            >
+              <Shield className="w-2.5 h-2.5 text-emerald-400" />
+              <span>ALTA DISCRECIÓN</span>
+            </span>
           )}
 
           {profile.isProvider && (
@@ -248,7 +261,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
         {/* Action buttons */}
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-neutral-800">
           <button
-            onClick={() => setIsMessagingOpen(true)}
+            onClick={() => {
+              recordProfileInteraction(profile, 'messaged');
+              setIsMessagingOpen(true);
+            }}
             className="bg-rose-600 hover:bg-rose-500 text-white font-medium py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1 shadow-sm transition-colors"
           >
             <span>💬 Mensaje</span>

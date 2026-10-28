@@ -408,6 +408,7 @@ const mockProfiles: Profile[] = Array.from({ length: 32 }, (_, i) => {
     reviewsCount: 14 + (i * 2),
     onlineStatus: i % 3 === 0 ? 'online' : i % 3 === 1 ? 'incognito' : 'offline',
     topPosition: i < 5,
+    isHighlyDiscreet: dossier.lookingFor?.includes('Discreción absoluta') || (i % 3 === 1) || (i % 2 === 0 && isEscort),
     landingSlug: dossier.name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + (i + 1)
   };
 });
@@ -444,6 +445,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
   const [filterTopOnly, setFilterTopOnly] = useState<boolean>(false);
   const [filterOnlineOnly, setFilterOnlineOnly] = useState<boolean>(false);
   const [filterFavoritesOnly, setFilterFavoritesOnly] = useState<boolean>(false);
+  const [filterDiscretion, setFilterDiscretion] = useState<'all' | 'highlight' | 'hide'>('all');
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
   // Accordion collapsed states for sidebar navigation
@@ -493,6 +495,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     setFilterTopOnly(false);
     setFilterOnlineOnly(false);
     setFilterFavoritesOnly(false);
+    setFilterDiscretion('all');
   };
 
   // Active filters count
@@ -504,6 +507,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     if (filterTopOnly) count++;
     if (filterOnlineOnly) count++;
     if (filterFavoritesOnly) count++;
+    if (filterDiscretion !== 'all') count++;
     count += filterRoles.length;
     count += filterGenders.length;
     count += filterLookingFor.length;
@@ -519,7 +523,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     return count;
   }, [
     selectedState, selectedMunicipality, filterVerifiedOnly, filterTopOnly, filterOnlineOnly,
-    filterFavoritesOnly,
+    filterFavoritesOnly, filterDiscretion,
     filterRoles, filterGenders, filterLookingFor, filterSexualPreferences,
     filterLogistics, filterSafety, filterHeights, filterEyeColors, filterHairColors,
     filterBodyTypes, filterPhysicalFeatures, filterHobbies
@@ -622,6 +626,10 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
       // Favorites Only
       if (filterFavoritesOnly && !isFavorited(profile.id)) return false;
 
+      // Highly Discreet Toggle: Highlight (only discreet) or Hide (exclude discreet)
+      if (filterDiscretion === 'highlight' && !profile.isHighlyDiscreet) return false;
+      if (filterDiscretion === 'hide' && profile.isHighlyDiscreet) return false;
+
       return true;
     });
   }, [
@@ -629,7 +637,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
     filterLookingFor, filterSexualPreferences, filterLogistics, filterSafety,
     filterHeights, filterEyeColors, filterHairColors, filterBodyTypes,
     filterPhysicalFeatures, filterHobbies, filterVerifiedOnly, filterTopOnly, filterOnlineOnly,
-    filterFavoritesOnly, isFavorited
+    filterFavoritesOnly, filterDiscretion, isFavorited
   ]);
 
   return (
@@ -647,7 +655,49 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Highly Discreet Filter 3-way segmented switch */}
+            <div className="flex items-center bg-neutral-900 border border-neutral-700/80 rounded-lg p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setFilterDiscretion('all')}
+                className={`px-2.5 py-1 rounded-md transition-colors ${
+                  filterDiscretion === 'all'
+                    ? 'bg-neutral-800 text-white font-medium shadow-xs'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+                title="Mostrar todos los perfiles"
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterDiscretion(filterDiscretion === 'highlight' ? 'all' : 'highlight')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors ${
+                  filterDiscretion === 'highlight'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium shadow-xs'
+                    : 'text-neutral-400 hover:text-amber-300'
+                }`}
+                title="Mostrar únicamente perfiles con Alta Discreción"
+              >
+                <Lock className="w-3 h-3 text-amber-400" />
+                <span>Alta Discreción</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterDiscretion(filterDiscretion === 'hide' ? 'all' : 'hide')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors ${
+                  filterDiscretion === 'hide'
+                    ? 'bg-rose-950/70 text-rose-300 border border-rose-800 font-medium shadow-xs'
+                    : 'text-neutral-400 hover:text-rose-300'
+                }`}
+                title="Ocultar perfiles de alta discreción"
+              >
+                <Eye className="w-3 h-3" />
+                <span className="hidden sm:inline">Ocultar discretos</span>
+              </button>
+            </div>
+
             {/* Quick Favorites Filter Toggle */}
             <button
               onClick={() => setFilterFavoritesOnly(!filterFavoritesOnly)}
@@ -674,7 +724,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
 
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="md:hidden flex-1 flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold py-2 px-3 rounded-lg border border-neutral-700 transition-colors"
+              className="md:hidden flex items-center justify-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold py-2 px-3 rounded-lg border border-neutral-700 transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4 text-rose-400" />
               <span>Filtros Completos {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
@@ -720,6 +770,68 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                     <span>Limpiar todo</span>
                   </button>
                 )}
+              </div>
+
+              {/* 0. Nivel de Privacidad & Discreción */}
+              <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-amber-400" /> Nivel de Discreción
+                  </span>
+                  {filterDiscretion !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setFilterDiscretion('all')}
+                      className="text-[10px] text-amber-400 hover:text-white"
+                    >
+                      Restablecer
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setFilterDiscretion('all')}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border text-left transition-colors flex items-center justify-between ${
+                      filterDiscretion === 'all'
+                        ? 'bg-neutral-800 text-white border-neutral-600 font-medium'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-white'
+                    }`}
+                  >
+                    <span>Todos los perfiles</span>
+                    {filterDiscretion === 'all' && <span className="w-1.5 h-1.5 rounded-full bg-neutral-300"></span>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterDiscretion('highlight')}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border text-left transition-colors flex items-center justify-between ${
+                      filterDiscretion === 'highlight'
+                        ? 'bg-amber-950/70 text-amber-200 border-amber-600 font-medium'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-amber-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Solo Alta Discreción</span>
+                    </span>
+                    {filterDiscretion === 'highlight' && <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterDiscretion('hide')}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border text-left transition-colors flex items-center justify-between ${
+                      filterDiscretion === 'hide'
+                        ? 'bg-rose-950/70 text-rose-200 border-rose-600 font-medium'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-rose-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Ocultar perfiles discretos</span>
+                    </span>
+                    {filterDiscretion === 'hide' && <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>}
+                  </button>
+                </div>
               </div>
 
               {/* 1. Ubicación (Estado & Municipio) */}
@@ -1586,6 +1698,22 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                       <button onClick={() => setFilterFavoritesOnly(false)}><X className="w-3 h-3" /></button>
                     </span>
                   )}
+
+                  {filterDiscretion === 'highlight' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded-md font-medium">
+                      <Lock className="w-3 h-3 text-amber-400" />
+                      Solo Alta Discreción
+                      <button onClick={() => setFilterDiscretion('all')}><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
+
+                  {filterDiscretion === 'hide' && (
+                    <span className="inline-flex items-center gap-1 text-[11px] bg-neutral-850 border border-neutral-700 text-neutral-300 px-2 py-0.5 rounded-md font-medium">
+                      <Eye className="w-3 h-3 text-neutral-400" />
+                      Ocultando Discretos
+                      <button onClick={() => setFilterDiscretion('all')}><X className="w-3 h-3" /></button>
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -1657,6 +1785,50 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
 
             {/* Modal Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              {/* Discretion Filter */}
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
+                <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-amber-400" /> Nivel de Discreción
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setFilterDiscretion('all')}
+                    className={`text-xs py-1.5 px-2 rounded-lg border text-center transition-colors ${
+                      filterDiscretion === 'all'
+                        ? 'bg-neutral-800 text-white border-neutral-600 font-semibold'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterDiscretion('highlight')}
+                    className={`text-xs py-1.5 px-2 rounded-lg border text-center transition-colors flex items-center justify-center gap-1 ${
+                      filterDiscretion === 'highlight'
+                        ? 'bg-amber-950/80 text-amber-200 border-amber-600 font-semibold'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800'
+                    }`}
+                  >
+                    <Lock className="w-3 h-3 text-amber-400" />
+                    <span>Discretos</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterDiscretion('hide')}
+                    className={`text-xs py-1.5 px-2 rounded-lg border text-center transition-colors flex items-center justify-center gap-1 ${
+                      filterDiscretion === 'hide'
+                        ? 'bg-rose-950/80 text-rose-200 border-rose-600 font-semibold'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800'
+                    }`}
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span>Ocultar</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Location */}
               <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 space-y-2">
                 <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">Ubicación</span>
