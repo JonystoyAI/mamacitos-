@@ -4,6 +4,7 @@ import SiteIcon from '../common/SiteIcon';
 import VerifiedBadge from '../common/VerifiedBadge';
 import AiVerifiedBadge from '../common/AiVerifiedBadge';
 import DirectMessagingModal from '../common/DirectMessagingModal';
+import ReportProfileModal from './ReportProfileModal';
 import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
 import { 
@@ -20,7 +21,8 @@ import {
   Maximize2,
   Volume2,
   Eye,
-  EyeOff
+  EyeOff,
+  Flag
 } from 'lucide-react';
 
 interface EditorialProfileViewProps {
@@ -132,6 +134,7 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeVideoModal, setActiveVideoModal] = useState<{ title: string; url: string } | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Gallery images (fallback to default 9 if not provided)
   const gallery = currentProfile.editorialGallery && currentProfile.editorialGallery.length === 9
@@ -157,7 +160,14 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
   const handleWhatsAppClick = () => {
     const phone = currentProfile.whatsappNumber || '524421234567';
     const message = encodeURIComponent(`Hola ${currentProfile.name}, vi tu perfil editorial en Mamacitos y me gustaría solicitar información con discreción.`);
-    window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
+    const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const openLightbox = (index: number) => {
@@ -209,6 +219,15 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
               title="Compartir perfil"
             >
               <Share2 className="w-4 h-4" />
+            </button>
+
+            {/* Discreet Report Profile Flag */}
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="p-2 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-amber-400 hover:border-amber-500/40 transition-colors"
+              title="Reportar cuenta sospechosa de manera discreta"
+            >
+              <Flag className="w-4 h-4" />
             </button>
 
             {isDiscretionMode && (
@@ -529,6 +548,30 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
             </div>
           </div>
 
+          {/* Trust & Community Safety discreet report banner */}
+          <div className="mt-8 pt-6 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between gap-4 bg-neutral-950/70 border border-neutral-900/80 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-neutral-300">
+                  Compromiso de Seguridad & Verificación Comunitaria
+                </p>
+                <p className="text-[11px] text-neutral-500">
+                  ¿Detectaste suplantación, contenido no consentido o anomalías? Sistema con auditoría confidencial y protección anti-sabotaje.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="w-full sm:w-auto px-3.5 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-amber-500/40 text-neutral-300 hover:text-amber-300 text-xs font-mono transition-all flex items-center justify-center gap-2 shrink-0"
+            >
+              <Flag className="w-3.5 h-3.5 text-amber-400" />
+              <span>Reportar / Ver Protocolo</span>
+            </button>
+          </div>
+
         </section>
 
       </div>
@@ -625,6 +668,13 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
         recipientName={currentProfile.name}
         recipientAvatar={currentProfile.image}
         recipientCode={currentProfile.userIdCode}
+      />
+
+      {/* Discreet Profile Reporting & Anti-Sabotage Review Modal */}
+      <ReportProfileModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        profile={currentProfile}
       />
 
     </div>
