@@ -5,6 +5,8 @@ import VerifiedBadge from '../common/VerifiedBadge';
 import AiVerifiedBadge from '../common/AiVerifiedBadge';
 import DirectMessagingModal from '../common/DirectMessagingModal';
 import ReportProfileModal from './ReportProfileModal';
+import PrivateVaultSection from './PrivateVaultSection';
+import SupportCreatorModal from './SupportCreatorModal';
 import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
 import { 
@@ -22,7 +24,8 @@ import {
   Volume2,
   Eye,
   EyeOff,
-  Flag
+  Flag,
+  Crown
 } from 'lucide-react';
 
 interface EditorialProfileViewProps {
@@ -63,6 +66,7 @@ const DEFAULT_EDITORIAL_PROFILE: Profile = {
   reviewsCount: 38,
   onlineStatus: 'online',
   topPosition: true,
+  isPremium: true,
   whatsappNumber: '+524421234567',
   editorialHeadline: 'HOLA SOY GRACE',
   editorialBioParagraph: 'Bienvenido a mi espacio privado. Te ofrezco una compañía sofisticada, cálida y sin tabúes, diseñada para desconectar del ritmo acelerado y disfrutar de una intimidad genuina y de máxima discreción.',
@@ -128,13 +132,27 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
   const favorited = isFavorited(currentProfile.id);
   const { shouldBlurMedia, shouldHideActivity, isDiscretionMode } = useDiscretionMode();
   const [tempReveal, setTempReveal] = useState(false);
-  const isBlurred = shouldBlurMedia && !tempReveal;
+  
+  // Censorship filter for primary photos: 'censored' (artistic blur) | 'discreet' (full blur for public spaces) | 'uncensored' (original)
+  const [censorshipFilter, setCensorshipFilter] = useState<'censored' | 'discreet' | 'uncensored'>('censored');
+
+  const getFilterClass = () => {
+    if (censorshipFilter === 'discreet' || (shouldBlurMedia && !tempReveal)) {
+      return 'blur-xl brightness-75';
+    }
+    if (censorshipFilter === 'censored') {
+      return 'blur-sm brightness-95';
+    }
+    return 'blur-none brightness-100';
+  };
+  const isBlurred = getFilterClass() !== 'blur-none brightness-100';
 
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeVideoModal, setActiveVideoModal] = useState<{ title: string; url: string } | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   // Gallery images (fallback to default 9 if not provided)
   const gallery = currentProfile.editorialGallery && currentProfile.editorialGallery.length === 9
@@ -221,6 +239,18 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
               <Share2 className="w-4 h-4" />
             </button>
 
+            {/* Quick Support Creator button in header if premium */}
+            {currentProfile.isPremium && (
+              <button
+                onClick={() => setIsSupportModalOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-mono font-semibold transition-all shadow-sm"
+                title="Apoyar a la creadora con una propina digital directa"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Apoyar</span>
+              </button>
+            )}
+
             {/* Discreet Report Profile Flag */}
             <button
               onClick={() => setIsReportModalOpen(true)}
@@ -295,10 +325,36 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
               >
                 <span>chat directo</span>
               </button>
+
+              {/* Support the creator button (Available exclusively for premium profiles) */}
+              {currentProfile.isPremium ? (
+                <button
+                  onClick={() => setIsSupportModalOpen(true)}
+                  className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-mono font-bold text-xs uppercase px-4 py-2 rounded-sm shadow-md transition-all transform active:scale-95 flex items-center gap-1.5 shadow-amber-500/10"
+                  title="Enviar propina digital o microtransacción directa para apoyar a la creadora"
+                >
+                  <Sparkles className="w-3.5 h-3.5 fill-current" />
+                  <span>Apoyar Creadora</span>
+                </button>
+              ) : (
+                <div 
+                  className="text-[11px] font-mono text-neutral-500 border border-neutral-800 px-3 py-1.5 rounded-sm flex items-center gap-1.5 bg-neutral-900/50"
+                  title="Propinas digitales exclusivas para perfiles con Membresía Premium"
+                >
+                  <Sparkles className="w-3 h-3 text-neutral-600" />
+                  <span>Propinas: Solo Plan Premium</span>
+                </div>
+              )}
             </div>
 
             {/* Subtle profile attributes bar */}
             <div className="flex flex-wrap items-center gap-2 pt-2 text-[11px] text-neutral-400">
+              {currentProfile.isPremium && (
+                <span className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded text-amber-300 font-mono font-semibold">
+                  <Crown className="w-3 h-3 text-amber-400" />
+                  <span>Creadora Premium VIP</span>
+                </span>
+              )}
               <span className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 px-2.5 py-1 rounded">
                 <MapPin className="w-3 h-3 text-rose-400" />
                 <span>{currentProfile.location}</span>
@@ -416,7 +472,63 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
           </div>
         </section>
 
-        {/* 5. Visual Grid (3x3 Photo Collage) & Vertical Reels Section (Exact layout from reference) */}
+        {/* 5. Censorship Filter Bar for Primary Photos */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-neutral-950 border border-neutral-800 rounded-xl p-3 px-4 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+            <div>
+              <span className="text-xs font-mono font-bold text-white block">
+                Filtro de Censura para Fotos Principales
+              </span>
+              <span className="text-[10px] text-neutral-400">
+                Ajusta la visibilidad de la galería pública según tu entorno
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-800 p-1 rounded-lg text-xs font-mono">
+            <button
+              onClick={() => setCensorshipFilter('censored')}
+              className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
+                censorshipFilter === 'censored'
+                  ? 'bg-neutral-800 text-amber-300 font-bold border border-neutral-700 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Censura artística suave"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Censura Artística</span>
+            </button>
+
+            <button
+              onClick={() => setCensorshipFilter('discreet')}
+              className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
+                censorshipFilter === 'discreet'
+                  ? 'bg-neutral-800 text-purple-300 font-bold border border-neutral-700 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Desenfoque total para transporte o lugares públicos"
+            >
+              <EyeOff className="w-3.5 h-3.5 text-purple-400" />
+              <span>Discreción Total</span>
+            </button>
+
+            <button
+              onClick={() => setCensorshipFilter('uncensored')}
+              className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
+                censorshipFilter === 'uncensored'
+                  ? 'bg-neutral-800 text-emerald-300 font-bold border border-neutral-700 shadow-sm'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Fotos originales completas"
+            >
+              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Sin Censura</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Visual Grid (3x3 Photo Collage) & Vertical Reels Section (Exact layout from reference) */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Left: 3x3 Photo Grid (9 Photos) */}
@@ -431,9 +543,14 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
                   <img
                     src={photoUrl}
                     alt={`Editorial Photo ${idx + 1}`}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 filter contrast-105 ${isBlurred ? 'blur-md' : ''}`}
+                    className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 filter contrast-105 ${getFilterClass()}`}
                     loading="lazy"
                   />
+                  {censorshipFilter === 'censored' && (
+                    <div className="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur-sm border border-neutral-700/80 text-[8px] font-mono text-neutral-300 px-1.5 py-0.5 rounded pointer-events-none">
+                      Censura Artística
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <Maximize2 className="w-5 h-5 text-white drop-shadow" />
                   </div>
@@ -493,7 +610,14 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
 
         </section>
 
-        {/* 6. Bottom Narrative & Social Section (Matching the footer in reference image) */}
+        {/* 6. Private Vault Section (Exclusive Photos & 4K Videos with Provider Code Generator & Direct Monetization) */}
+        <PrivateVaultSection
+          profile={currentProfile}
+          onOpenDirectChat={() => setIsMessagingOpen(true)}
+          onOpenWhatsApp={handleWhatsAppClick}
+        />
+
+        {/* 7. Bottom Narrative & Social Section (Matching the footer in reference image) */}
         <section className="pt-8 border-t border-neutral-900 flex flex-col md:flex-row items-center justify-between gap-6">
           
           {/* Bottom Left: Official Updated Mamacitos Logo */}
@@ -674,6 +798,13 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
       <ReportProfileModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
+        profile={currentProfile}
+      />
+
+      {/* Support the Creator & Digital Tips Microtransaction Modal */}
+      <SupportCreatorModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
         profile={currentProfile}
       />
 

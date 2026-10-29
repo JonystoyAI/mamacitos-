@@ -3,6 +3,7 @@ import { Profile } from '../../types';
 import VerifiedBadge from './VerifiedBadge';
 import AiVerifiedBadge from './AiVerifiedBadge';
 import DirectMessagingModal from './DirectMessagingModal';
+import SupportCreatorModal from '../profile/SupportCreatorModal';
 import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
 import { recordProfileInteraction } from '../../src/utils/recentlyViewed';
@@ -21,6 +22,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
 
   const [showUncensored, setShowUncensored] = useState(isUnblurred);
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
   // In discretion mode, media is strongly blurred by default unless user explicitly reveals it
@@ -279,6 +281,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
           </button>
         </div>
 
+        {/* Support the creator button for Premium Profiles */}
+        {profile.isPremium && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSupportOpen(true);
+            }}
+            className="w-full mt-2 py-1.5 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-mono text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            title="Enviar propina o microtransacción digital a la creadora"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Apoyar Creadora (Propina)</span>
+          </button>
+        )}
+
         {/* Direct Messaging Modal */}
         <DirectMessagingModal
           isOpen={isMessagingOpen}
@@ -289,6 +306,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
           recipientRole={profile.role}
           recipientLocation={profile.location}
           recipientIsVerified={profile.isVerified}
+        />
+
+        {/* Support Creator Modal */}
+        <SupportCreatorModal
+          isOpen={isSupportOpen}
+          onClose={() => setIsSupportOpen(false)}
+          profile={profile}
         />
       </div>
     </div>

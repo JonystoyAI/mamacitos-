@@ -411,6 +411,7 @@ const mockProfiles: Profile[] = Array.from({ length: 32 }, (_, i) => {
     reviewsCount: 14 + (i * 2),
     onlineStatus: i % 3 === 0 ? 'online' : i % 3 === 1 ? 'incognito' : 'offline',
     topPosition: i < 5,
+    isPremium: (i % 2 === 0) || (i < 6) || isEscort,
     isHighlyDiscreet: dossier.lookingFor?.includes('Discreción absoluta') || (i % 3 === 1) || (i % 2 === 0 && isEscort),
     landingSlug: dossier.name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + (i + 1)
   };
