@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   Send, Mic, MicOff, Square, Loader2, X, Sparkles, CheckCheck, 
   ShieldCheck, Lock, Key, Flame, Clock, Eye, EyeOff, Image as ImageIcon, 
-  AlertCircle, Crown, Play, Pause, Volume2, ChevronDown, Check, RefreshCw, Info
+  AlertCircle, Crown, Play, Pause, Volume2, ChevronDown, Check, RefreshCw, Info,
+  Minus, Maximize2
 } from 'lucide-react';
 
 export interface ChatMessage {
@@ -92,27 +93,112 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
   const [isAttachingPhoto, setIsAttachingPhoto] = useState(false);
   const [photoBlurred, setPhotoBlurred] = useState(true);
 
+  // Minimized floating dock state
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
+
   // Refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
-  // Auto-scroll to bottom
+  // Non-intrusive scroll tracking
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState<boolean>(false);
+  const prevMessagesCountRef = useRef<number>(messages.length);
+
+  // Reset minimized on fresh open
   useEffect(() => {
     if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setIsMinimized(false);
     }
-  }, [isOpen, messages, isRecording]);
+  }, [isOpen]);
 
-  // Handle disappearing messages countdown
+  // Keyboard shortcut: Escape key minimizes chat (or closes if already minimized)
   useEffect(() => {
     if (!isOpen) return;
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (!isMinimized) {
+          setIsMinimized(true);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isMinimized, onClose]);
+
+  // Handle user scrolling: hide scroll button if near bottom
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    setShowScrollBottomBtn(distanceFromBottom > 110);
+  };
+
+  const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+    setShowScrollBottomBtn(false);
+  };
+
+  // Initial gentle scroll to bottom when opened
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      const t = setTimeout(() => {
+        scrollToBottom('auto');
+      }, 60);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, isMinimized]);
+
+  // NON-INTRUSIVE SCROLL: Only fires when a genuine NEW message is added (messages.length changes).
+  // Will never fire on countdown ticks or interval updates.
+  // If the user has scrolled up to read older messages, does NOT interrupt them.
+  useEffect(() => {
+    if (!isOpen || isMinimized) return;
+
+    const isNewMessageAdded = messages.length > prevMessagesCountRef.current;
+    const lastMessage = messages[messages.length - 1];
+    prevMessagesCountRef.current = messages.length;
+
+    if (!isNewMessageAdded) return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const isUserNearBottom = distanceFromBottom < 110;
+    const isFromUser = lastMessage?.sender === 'user';
+
+    // If the user sent the message or was already near the bottom, scroll down smoothly
+    if (isFromUser || isUserNearBottom) {
+      scrollToBottom('smooth');
+    } else {
+      // User is reading previous messages: preserve scroll and show badge
+      setShowScrollBottomBtn(true);
+    }
+  }, [messages.length, isOpen, isMinimized]);
+
+  // Handle disappearing messages countdown ONLY when active unburned messages exist
+  // Does not return a new messages array reference if no change is needed
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const hasActiveBurn = messages.some((m) => m.expiresInSeconds && !m.isBurned);
+    if (!hasActiveBurn) return;
+
     const interval = setInterval(() => {
-      setMessages((prev) =>
-        prev.map((msg) => {
+      setMessages((prev) => {
+        const stillHasActive = prev.some((m) => m.expiresInSeconds && !m.isBurned);
+        if (!stillHasActive) return prev;
+
+        return prev.map((msg) => {
           if (!msg.expiresInSeconds || msg.isBurned) return msg;
 
           const currentRemaining = msg.burnRemaining !== undefined ? msg.burnRemaining : msg.expiresInSeconds;
@@ -129,12 +215,12 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
             ...msg,
             burnRemaining: currentRemaining - 1,
           };
-        })
-      );
+        });
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, messages.some((m) => m.expiresInSeconds && !m.isBurned)]);
 
   // Rate limit cooldown counter
   useEffect(() => {
@@ -340,8 +426,73 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
     return `${Math.floor(secs / 3600)}h`;
   };
 
+  // Compact floating dock when chat is minimized
+  if (isMinimized) {
+    return (
+      <div
+        onClick={() => setIsMinimized(false)}
+        className="fixed bottom-5 right-5 z-50 bg-neutral-950/95 hover:bg-neutral-900 border border-neutral-700/90 hover:border-amber-500/50 rounded-2xl px-3.5 py-2.5 shadow-2xl flex items-center gap-3 cursor-pointer transition-all select-none backdrop-blur-md group animate-fade-in"
+        title="Haz clic para restaurar el chat (o presiona Esc)"
+        role="region"
+        aria-label="Chat minimizado"
+      >
+        <div className="relative shrink-0">
+          <img
+            src={recipientAvatar || 'https://picsum.photos/seed/user/200/200'}
+            alt={recipientName}
+            className="w-9 h-9 rounded-full object-cover border border-neutral-700"
+          />
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-neutral-950" />
+        </div>
+
+        <div className="flex flex-col text-left">
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-xs sm:text-sm text-white group-hover:text-amber-300 transition-colors truncate max-w-[130px]">
+              {recipientName}
+            </span>
+            <span className="text-[10px] text-emerald-400 font-mono">• En línea</span>
+          </div>
+          <span className="text-[10px] text-neutral-400 font-mono flex items-center gap-1">
+            <Lock className="w-2.5 h-2.5 text-emerald-400" /> Cifrado E2EE • Minimizado
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 pl-2 border-l border-neutral-800" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition-colors"
+            title="Restaurar y expandir chat"
+            aria-label="Expandir chat"
+          >
+            <Maximize2 className="w-4 h-4 text-amber-400" />
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-neutral-400 hover:text-rose-400 rounded-lg hover:bg-neutral-800 transition-colors"
+            title="Cerrar chat por completo"
+            aria-label="Cerrar chat"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      onDoubleClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setIsMinimized(true);
+        }
+      }}
+    >
+      {/* Help tooltip for quick minimization */}
+      <div className="absolute top-3 text-[11px] font-mono text-neutral-400/90 bg-neutral-900/90 border border-neutral-800 px-3 py-1 rounded-full pointer-events-none select-none hidden sm:flex items-center gap-1.5 shadow-lg z-10">
+        <span>💡 Doble clic fuera o presiona <kbd className="px-1 py-0.5 bg-neutral-800 border border-neutral-700 rounded text-neutral-200">Esc</kbd> para minimizar</span>
+      </div>
+
       {/* Honeypot hidden input for anti-bot detection */}
       <input
         type="text"
@@ -354,7 +505,11 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
         aria-hidden="true"
       />
 
-      <div className="bg-neutral-950 border border-neutral-800 w-full max-w-2xl h-[94vh] sm:h-[85vh] max-h-[850px] rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
+        className="bg-neutral-950 border border-neutral-800 w-full max-w-2xl h-[94vh] sm:h-[85vh] max-h-[850px] rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative"
+      >
         
         {/* TOP STATUS BAR: E2EE CRYPTOGRAPHY & VIP TIER TOGGLE */}
         <div className="bg-neutral-900/90 border-b border-neutral-800 px-3 sm:px-4 py-2 flex items-center justify-between text-[11px] text-neutral-300">
@@ -509,10 +664,21 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
               )}
             </div>
 
+            {/* Minimize Button */}
+            <button
+              onClick={() => setIsMinimized(true)}
+              className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition-colors"
+              title="Minimizar chat (Esc o doble clic fuera)"
+              aria-label="Minimizar chat"
+            >
+              <Minus className="w-5 h-5" />
+            </button>
+
             {/* Close Button */}
             <button
               onClick={onClose}
               className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition-colors"
+              title="Cerrar chat"
               aria-label="Cerrar chat"
             >
               <X className="w-5 h-5" />
@@ -521,7 +687,11 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
         </div>
 
         {/* CHAT MESSAGES SCROLL AREA */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5 bg-neutral-950/90">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5 bg-neutral-950/90 relative"
+        >
           
           {/* Incognito Notice */}
           {incognitoMode && (
@@ -657,6 +827,20 @@ export const SecureEncryptedChatModal: React.FC<SecureEncryptedChatModalProps> =
 
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Floating non-intrusive jump to latest messages pill */}
+        {showScrollBottomBtn && (
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 pointer-events-auto animate-fade-in">
+            <button
+              type="button"
+              onClick={() => scrollToBottom('smooth')}
+              className="bg-neutral-900/95 hover:bg-neutral-800 text-amber-300 border border-amber-500/50 px-3.5 py-1.5 rounded-full text-xs font-mono shadow-2xl flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+            >
+              <ChevronDown className="w-3.5 h-3.5 text-amber-400" />
+              <span>Nuevos mensajes abajo</span>
+            </button>
+          </div>
+        )}
 
         {/* QUICK CONVERSATION STARTERS */}
         <div className="bg-neutral-900/80 border-t border-neutral-800 px-3 py-2 overflow-x-auto flex items-center gap-1.5 scrollbar-none">
