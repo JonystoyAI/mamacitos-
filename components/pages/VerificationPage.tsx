@@ -58,26 +58,33 @@ const VerificationPage: React.FC = () => {
   const [newComment, setNewComment] = useState<string>('');
   const [isAnonReview, setIsAnonReview] = useState<boolean>(true);
 
+  const [notification, setNotification] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  const showNotification = (text: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setNotification({ text, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
+
   const handleSend2FACode = () => {
     if (!phoneNumber2FA) return;
     setCodeSent(true);
-    alert(`Código de seguridad de 6 dígitos enviado por SMS al ${phoneNumber2FA}`);
+    showNotification(`Código de seguridad de 6 dígitos enviado por SMS al ${phoneNumber2FA}`, 'info');
   };
 
   const handleVerify2FA = (e: React.FormEvent) => {
     e.preventDefault();
     if (authCode.length < 4) {
-      alert('Ingresa el código enviado por SMS.');
+      showNotification('Ingresa el código enviado por SMS.', 'error');
       return;
     }
     setIs2FAEnabled(true);
-    alert('¡Autenticación de Dos Factores (2FA) Activada Correctamente!');
+    showNotification('¡Autenticación de Dos Factores (2FA) Activada Correctamente!', 'success');
   };
 
   const handleDocumentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!docNumber || !emergencyPhone) {
-      alert('Por favor completa el número de documento y el teléfono de emergencia.');
+      showNotification('Por favor completa el número de documento y el teléfono de emergencia.', 'error');
       return;
     }
 
@@ -85,7 +92,7 @@ const VerificationPage: React.FC = () => {
     setTimeout(() => {
       setSubmittingDoc(false);
       setIsVerified(true);
-      alert('¡Verificación Biométrica e Identificación Oficial Aprobada! Tu perfil cuenta con insignia de Verificación Oficial.');
+      showNotification('¡Verificación Biométrica IA e Identificación Oficial Aprobadas! Tu perfil ya cuenta con la insignia AI-Verified.', 'success');
     }, 1500);
   };
 
@@ -108,11 +115,25 @@ const VerificationPage: React.FC = () => {
 
     setReviews([review, ...reviews]);
     setNewComment('');
-    alert('¡Calificación guardada exitosamente con reglas de privacidad Mamacitos!');
+    showNotification('¡Calificación guardada exitosamente con reglas de privacidad Mamacitos!', 'success');
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`fixed top-20 right-6 z-50 max-w-md p-3.5 rounded-xl border shadow-2xl flex items-center gap-2 animate-fade-in text-xs font-semibold backdrop-blur-md ${
+          notification.type === 'error'
+            ? 'bg-rose-950/95 border-rose-500 text-rose-200'
+            : notification.type === 'info'
+            ? 'bg-blue-950/95 border-blue-500 text-blue-200'
+            : 'bg-emerald-950/95 border-emerald-500 text-emerald-200'
+        }`}>
+          <span>{notification.text}</span>
+          <button onClick={() => setNotification(null)} className="ml-auto text-neutral-400 hover:text-white">✕</button>
+        </div>
+      )}
+
       {/* Title */}
       <div className="text-center mb-12">
         <span className="bg-brand-lime text-brand-purple-dark text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">

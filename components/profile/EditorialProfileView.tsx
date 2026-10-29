@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Profile, ProfileReel, ProfileShowcaseVideo } from '../../types';
 import SiteIcon from '../common/SiteIcon';
 import VerifiedBadge from '../common/VerifiedBadge';
+import AiVerifiedBadge from '../common/AiVerifiedBadge';
 import DirectMessagingModal from '../common/DirectMessagingModal';
 import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
@@ -293,8 +294,15 @@ const EditorialProfileView: React.FC<EditorialProfileViewProps> = ({
                   Rol: {currentProfile.role}
                 </span>
               )}
-              {currentProfile.isVerified && (
-                <VerifiedBadge isVerified={true} size="sm" variant="official" />
+              {(currentProfile.isVerified || currentProfile.isAiVerified) && (
+                <AiVerifiedBadge
+                  size="md"
+                  variant="badge"
+                  score={currentProfile.aiVerificationScore || 99.4}
+                  userIdCode={currentProfile.userIdCode}
+                  docType={currentProfile.verificationDoc || 'INE'}
+                  verifiedAt={currentProfile.aiVerifiedDate || '2026-10-15'}
+                />
               )}
             </div>
           </div>

@@ -77,6 +77,9 @@ export interface Profile {
   isVerified?: boolean;
   verificationDoc?: 'INE' | 'Pasaporte';
   emergencyContact?: string;
+  isAiVerified?: boolean; // Profile with AI biometric & official document verification badge
+  aiVerificationScore?: number; // Biometric match score percentage (e.g. 99.4)
+  aiVerifiedDate?: string;
   rating?: number;
   reviewsCount?: number;
   onlineStatus?: 'online' | 'offline' | 'incognito';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, CheckCircle2, Award, Sparkles, Check, Info } from 'lucide-react';
+export { AiVerifiedBadge } from './AiVerifiedBadge';
 
 export interface VerifiedBadgeProps {
   isVerified?: boolean;

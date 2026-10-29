@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, Globe, Upload, FileText, CheckCircle2, AlertTriangle, Eye, EyeOff, ArrowRight, ArrowLeft, RefreshCw, PhoneCall, UserCheck, Sparkles, Check } from 'lucide-react';
 import VerifiedBadge from '../common/VerifiedBadge';
+import AiVerifiedBadge from '../common/AiVerifiedBadge';
 
 interface VerificationStepProgressProps {
   onVerificationComplete?: (docType: string, docNumber: string) => void;
@@ -601,11 +602,19 @@ export const VerificationStepProgress: React.FC<VerificationStepProgressProps> =
                 </p>
               </div>
 
-              {/* Official Badge Card Display */}
-              <div className="max-w-md mx-auto bg-black/80 p-6 rounded-2xl border border-gray-700 shadow-xl space-y-4">
+              {/* Official AI-Verified Badge Card Display */}
+              <div className="max-w-md mx-auto bg-black/80 p-6 rounded-2xl border border-emerald-500/40 shadow-xl space-y-4">
                 <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-                  <span className="text-xs font-bold text-gray-400">Estatus de Cuenta:</span>
-                  <VerifiedBadge isVerified={true} docType={docType} userIdCode="MMC-9821" size="md" variant="official" />
+                  <span className="text-xs font-bold text-gray-400">Insignia Obtenida:</span>
+                  <div className="flex items-center gap-1.5">
+                    <AiVerifiedBadge
+                      size="md"
+                      variant="badge"
+                      score={99.8}
+                      userIdCode="MMC-9821"
+                      docType={docType}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-left text-xs">
@@ -618,24 +627,26 @@ export const VerificationStepProgress: React.FC<VerificationStepProgressProps> =
                     <strong className="text-emerald-400">✓ Activa y Cifrada</strong>
                   </div>
                 </div>
+
+                <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2.5 text-[11px] text-emerald-300 flex items-center gap-2 text-left">
+                  <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Tu insignia <strong>AI-Verified</strong> certifica tu identidad y previene cuentas falsas en la comunidad.</span>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 max-w-md mx-auto">
                 <button
                   onClick={() => setCurrentStep(1)}
-                  className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-3 px-5 rounded-xl text-xs flex items-center justify-center gap-2"
+                  className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-3 px-5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <RefreshCw className="w-4 h-4" />
                   <span>Volver a Revisar Pasos</span>
                 </button>
 
-                <button
-                  onClick={() => alert('Insignia Oficial lista para mostrarse en tu Landing Page VIP y perfil público.')}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3 px-6 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xl"
-                >
+                <div className="bg-emerald-500 text-black font-extrabold py-3 px-6 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xl select-none">
                   <Sparkles className="w-4 h-4" />
-                  <span>Ver mi Perfil Público</span>
-                </button>
+                  <span>Insignia Activa en tu Perfil</span>
+                </div>
               </div>
 
             </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Profile } from '../../types';
 import VerifiedBadge from './VerifiedBadge';
+import AiVerifiedBadge from './AiVerifiedBadge';
 import DirectMessagingModal from './DirectMessagingModal';
 import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
@@ -102,13 +103,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isUnblurred = false,
 
         {/* Badges on Top Right */}
         <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
-          {profile.isVerified && (
-            <VerifiedBadge
-              isVerified={true}
-              docType={profile.verificationDoc || 'INE'}
-              userIdCode={profile.userIdCode}
+          {(profile.isVerified || profile.isAiVerified) && (
+            <AiVerifiedBadge
               size="sm"
-              variant={profile.topPosition ? 'gold' : 'official'}
+              score={profile.aiVerificationScore || 99.4}
+              userIdCode={profile.userIdCode}
+              docType={profile.verificationDoc || 'INE'}
+              verifiedAt={profile.aiVerifiedDate || '2026-10-15'}
             />
           )}
 

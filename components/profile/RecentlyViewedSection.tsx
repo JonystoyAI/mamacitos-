@@ -4,6 +4,7 @@ import { useFavorites } from '../../src/utils/favorites';
 import { useDiscretionMode } from '../../src/utils/discretionMode';
 import { Profile } from '../../types';
 import VerifiedBadge from '../common/VerifiedBadge';
+import AiVerifiedBadge from '../common/AiVerifiedBadge';
 import DirectMessagingModal from '../common/DirectMessagingModal';
 import { 
   Clock, Trash2, MessageSquare, ExternalLink, Heart, 
@@ -204,13 +205,12 @@ export const RecentlyViewedSection: React.FC<RecentlyViewedSectionProps> = ({
                         </span>
                       )}
 
-                      {profile.isVerified && (
-                        <VerifiedBadge
-                          isVerified={true}
-                          docType={profile.verificationDoc || 'INE'}
-                          userIdCode={profile.userIdCode}
+                      {(profile.isVerified || profile.isAiVerified) && (
+                        <AiVerifiedBadge
                           size="sm"
-                          variant="official"
+                          score={profile.aiVerificationScore || 99.2}
+                          userIdCode={profile.userIdCode}
+                          docType={profile.verificationDoc || 'INE'}
                         />
                       )}
                     </div>

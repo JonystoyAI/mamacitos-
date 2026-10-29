@@ -403,6 +403,9 @@ const mockProfiles: Profile[] = Array.from({ length: 32 }, (_, i) => {
     physicalFeatures: dossier.features,
     hobbies: dossier.hobbies,
     isVerified: i % 2 === 0,
+    isAiVerified: i % 2 === 0,
+    aiVerificationScore: 98.4 + ((i * 1.3) % 1.5),
+    aiVerifiedDate: '2026-10-15',
     verificationDoc: i % 3 === 0 ? 'Pasaporte' : 'INE',
     rating: 4.9,
     reviewsCount: 14 + (i * 2),
@@ -1514,6 +1517,19 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1.5">
+                  {/* AI-Verified quick filter button */}
+                  <button
+                    onClick={() => setFilterVerifiedOnly(!filterVerifiedOnly)}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex items-center gap-1.5 ${
+                      filterVerifiedOnly
+                        ? 'bg-emerald-600 border-emerald-400 text-neutral-950 font-bold shadow'
+                        : 'bg-neutral-950 border-emerald-500/40 text-emerald-300 hover:border-emerald-400'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>AI-Verified</span>
+                  </button>
+
                   {/* Requested Gender highlights */}
                   <button
                     onClick={() => toggleItem(filterGenders, setFilterGenders, 'Pareja Trans y Trans')}
@@ -1762,8 +1778,9 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onViewProfile, onNavigate }) 
                   ))}
 
                   {filterVerifiedOnly && (
-                    <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-950/60 border border-emerald-800 text-emerald-200 px-2 py-0.5 rounded-md">
-                      ✓ Verificados
+                    <span className="inline-flex items-center gap-1.5 text-[11px] bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 px-2 py-0.5 rounded-md font-medium">
+                      <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                      AI-Verified
                       <button onClick={() => setFilterVerifiedOnly(false)}><X className="w-3 h-3" /></button>
                     </span>
                   )}
